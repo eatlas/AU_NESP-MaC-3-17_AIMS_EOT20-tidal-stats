@@ -11,8 +11,13 @@ timestep of 0.5 hours. The work is split into vertical slices for parallel
 processing. Intermediate results are saved every 100 processed pixels to
 allow for script restart.
 
-**Important**: We manually convert Python datetimes to "days since 1992-01-01"
-to avoid the recent timescale/time conflict in pyTMD.
+Quick start example:
+    python 03-tidal_stats.py --config config/king-sound-quick-test.yaml
+    
+Example parallel processing:
+    python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 0
+    python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 1
+
 """
 import argparse
 import os
@@ -26,24 +31,50 @@ from tqdm import tqdm
 import warnings
 import matplotlib.pyplot as plt
 
-# Older pyTMD API calls
 import pyTMD.io.FES
 import pyTMD.predict
+import util as util
+
+import signal
+import sys
+import threading
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# Global flag to allow graceful termination
+stop_processing = False
+
+def quit_listener():
+    """
+    Waits for the user to type 'q' and press Enter to quit.
+    """
+    global stop_processing
+    print("\nPress 'q' and Enter at any time to stop the script gracefully...\n")
+    while True:
+        user_input = input().strip().lower()
+        if user_input == "q":
+            stop_processing = True
+            print("\nStopping after current process...\n")
+            break
+
+# Start quit listener thread
+quit_thread = threading.Thread(target=quit_listener, daemon=True)
+quit_thread.start()
+
+
+
 # -----------------------------------------------------------------------------
-# 1. READ EOT20 CONSTANTS (older pyTMD API)
+# 1. READ EOT20 CONSTANTS 
 # -----------------------------------------------------------------------------
 def load_eot20_constants(base_path):
     """
     Load the EOT20 NetCDF files from the specified directory.
     Returns a 'constituents' object with amplitude/phase grids.
     """
-    model_files = sorted(glob.glob(os.path.join(base_path, "ocean_tides", "*.nc")))
+    model_files = sorted(glob.glob(os.path.join(base_path, "*.nc")))
     if len(model_files) == 0:
         raise FileNotFoundError(
-            "No EOT20 netCDF found in 'EOT20/ocean_tides/*.nc' under:\n"
+            "No EOT20 netCDF found in '*.nc' under:\n"
             f"  {base_path}"
         )
 
@@ -88,9 +119,9 @@ def predict_tide(lat, lon, times, eot20_consts):
         np.atleast_1d(lon),
         np.atleast_1d(lat),
         eot20_consts,
-        method="spline",
+        method="bilinear",
         extrapolate=True,
-        cutoff=10.0,
+        cutoff=np.inf,
         scale=1.0  # if the EOT20 is already in meters
     )
     # shape of amp, ph = (1, nConstituents)
@@ -129,21 +160,44 @@ def predict_tide(lat, lon, times, eot20_consts):
 # -----------------------------------------------------------------------------
 def compute_moon_phases(start, end):
     """
-    Estimate new and full moon dates between 'start' and 'end'.
+    Estimate new and full moon dates between 'start' and 'end',
+    supporting both past and future years (at least 19 years back).
+
+    Uses a reference new moon date (2000-01-06) and calculates cycles forward
+    and backward using the synodic month (29.53 days).
     """
-    ref_new_moon = datetime(2024, 1, 11)
-    synodic = 29.53  # days
+    ref_new_moon = datetime(2000, 1, 6)  # A known reference new moon date
+    synodic = 29.53  # Average synodic month in days
     phases = []
-    current_new = ref_new_moon
-    while current_new < end:
+
+    # Determine the closest previous new moon before `start`
+    elapsed_days = (start - ref_new_moon).days
+    cycles_since_ref = elapsed_days / synodic
+    closest_new_moon = ref_new_moon + timedelta(days=round(cycles_since_ref) * synodic)
+
+    # Iterate backwards to ensure we cover any missing past new moons
+    current_new = closest_new_moon
+    while current_new >= start:
+        full_moon = current_new + timedelta(days=synodic / 2)
+        if current_new <= end:
+            phases.append(("new", current_new))
+        if start <= full_moon <= end:
+            phases.append(("full", full_moon))
+        current_new -= timedelta(days=synodic)  # Move one cycle backward
+
+    # Iterate forward to fill new moons in the given range
+    current_new = closest_new_moon + timedelta(days=synodic)
+    while current_new <= end:
+        full_moon = current_new + timedelta(days=synodic / 2)
         if current_new >= start:
             phases.append(("new", current_new))
-        full_moon = current_new + timedelta(days=synodic / 2)
-        if (full_moon >= start) and (full_moon < end):
+        if start <= full_moon <= end:
             phases.append(("full", full_moon))
-        current_new += timedelta(days=synodic)
-    phases.sort(key=lambda x: x[1])
+        current_new += timedelta(days=synodic)  # Move one cycle forward
+
+    phases.sort(key=lambda x: x[1])  # Ensure phases are ordered by date
     return phases
+
 
 def compute_tidal_stats(time_series, tide_series, start_dt, end_dt):
     """
@@ -184,30 +238,8 @@ def main():
         description="Calculate tidal statistics from tide-model grid (EOT20) with older pyTMD API."
     )
     parser.add_argument(
-        "--path_to_tide_models",
-        default="in-data-3p/World_EOT20_2021",
-        help="Path to parent folder containing EOT20/ocean_tides/*.nc"
-    )
-    parser.add_argument(
-        "--path_input_grid",
-        default="working/AU_AIMS_EOT20-model-grid.tif",
-        help="Path to the input grid (GeoTiff) to specify where the tide modelling should be done. Created using 02-tide_model_grid.py"
-    )
-    parser.add_argument(
-        "--start-date", default="2024-01-01",
-        help="Start date (YYYY-MM-DD)"
-    )
-    parser.add_argument(
-        "--end-date", default="2024-12-31",
-        help="End date (YYYY-MM-DD)"
-    )
-    parser.add_argument(
-        "--time_step", type=float, default=0.5,
-        help="Time step in hours"
-    )
-    parser.add_argument(
-        "--working_path", default="working",
-        help="Folder for intermediate outputs"
+        "--config", type=str, required=True,
+        help="Path to the YAML configuration file containing model run parameters."
     )
     parser.add_argument(
         "--split", type=int, default=1,
@@ -217,10 +249,6 @@ def main():
         "--index", type=int, default=0,
         help="0-based index of the slice to process"
     )
-    parser.add_argument(
-        "--name_switch", action="store_true",
-        help="If set, switch output to LAT/HAT naming."
-    )
     
     parser.add_argument(
     "--debug", action="store_true",
@@ -229,12 +257,40 @@ def main():
 
     args = parser.parse_args()
 
-    start_dt = datetime.strptime(args.start_date, "%Y-%m-%d")
-    end_dt = datetime.strptime(args.end_date, "%Y-%m-%d")
-    times = pd.date_range(start=start_dt, end=end_dt, freq=f"{args.time_step}H")
+    # List of required configuration parameters.
+    required_params = [
+        "clipped_tide_model_path",
+        "grid_path",
+        "start_date",
+        "end_date",
+        "time_step",
+        "working_path",
+        "lat_label",
+        "hat_label"
+    ]
+
+    # Load model run parameters from the YAML config file.
+    config = util.load_config(args.config, required_params)
+
+    print("Started script with the following configuration:")
+    util.print_config(config)
+
+    # Unpack configuration values from YAML.
+    clipped_tide_model_path = config.get("clipped_tide_model_path")
+    grid_path = config.get("grid_path")
+    start_date = config.get("start_date")
+    end_date = config.get("end_date")
+    time_step = config.get("time_step")
+    working_path = config.get("working_path")
+    lat_label = config.get("lat_label")
+    hat_label = config.get("hat_label")
+
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    times = pd.date_range(start=start_dt, end=end_dt, freq=f"{time_step}H")
 
     # Read the tide-model grid mask
-    with rasterio.open(args.tide_model_grid) as src:
+    with rasterio.open(grid_path) as src:
         grid = src.read(1)  # 1=process, 0=skip
         transform = src.transform
         width = src.width
@@ -261,17 +317,15 @@ def main():
     mhws_arr = np.full((height, slice_width), np.nan, dtype=np.float32)
 
     # Build output filenames
-    sim_years = f"{start_dt.year}-{start_dt.month}_{end_dt.year}-{end_dt.month}"
-    lpt_tide_label = "LPT" if args.name_switch else "LAT"
-    hpt_tide_label = "HPT" if args.name_switch else "HAT"
+    sim_years = f"{start_dt.strftime('%Y-%m')}_{end_dt.strftime('%Y-%m')}"
     base = f"EOT20_{sim_years}_strip_{index}.tif"
-    lpt_file = os.path.join(args.working_path, lpt_tide_label+"_" + base)
-    hpt_file = os.path.join(args.working_path, hpt_tide_label+"_" + base)
-    mlws_file = os.path.join(args.working_path, "MLWS_" + base)
-    mhws_file = os.path.join(args.working_path, "MHWS_" + base)
+    lpt_file = os.path.join(working_path, lat_label+"_" + base)
+    hpt_file = os.path.join(working_path, hat_label+"_" + base)
+    mlws_file = os.path.join(working_path, "MLWS_" + base)
+    mhws_file = os.path.join(working_path, "MHWS_" + base)
 
-    if not os.path.exists(args.working_path):
-        os.makedirs(args.working_path)
+    if not os.path.exists(working_path):
+        os.makedirs(working_path)
 
     # Resume from existing partial outputs if present
     for fname, arr_ref in zip(
@@ -284,7 +338,7 @@ def main():
             arr_ref[:] = data
 
     # Load EOT20 constants (older pyTMD approach)
-    eot20_consts = load_eot20_constants(args.path_to_tide_models)
+    eot20_consts = load_eot20_constants(clipped_tide_model_path)
 
     # List cells to process
     process_indices = []
@@ -297,9 +351,45 @@ def main():
     total = len(process_indices)
     print(f"Processing {total} grid cells in slice {index} (cols={start_col}:{end_col})")
 
-    # Main loop
+    def save_geotiff(file_path, data_array, profile, metadata):
+        """
+        Saves a 2D NumPy array as a GeoTIFF with specified metadata.
+
+        Parameters:
+        - file_path (str): Path to the output GeoTIFF file.
+        - data_array (np.ndarray): 2D array containing tidal statistics.
+        - profile (dict): Rasterio profile containing metadata about the GeoTIFF.
+        - metadata (dict): Additional metadata tags to include in the file.
+        """
+        with rasterio.open(file_path, "w", **profile) as dst:
+            dst.write(data_array, 1)
+            dst.update_tags(**metadata)
+
+
+    # ---------------------------------------------------------------------------
+    # Main loop for processing grid cells
+    # ---------------------------------------------------------------------------
     count = 0
+    metadata_tags = {
+        "start_date": str(start_date),
+        "end_date": str(end_date),
+        "time_step_hours": str(time_step),
+        "tide_model": "Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, Schwatke Christian, Passaro Marcello, Seitz Florian (2021). EOT20 - A global Empirical Ocean Tide model from multi-mission satellite altimetry. SEANOE. https://doi.org/10.17882/79489",
+        "description": f"Tidal statistics derived from EOT20 using pyTMD.",
+        "author": "Eric Lawrey",
+        "organization": "Australian Institute of Marine Science",
+        "date_created": datetime.now().strftime("%Y-%m-%d"),
+        "software": "03-tidal_stats.py using Rasterio",
+        "reference": "Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS) derived from the EOT20 tidal model (NESP MaC 3.17, AIMS) (V1) [Data set]. eAtlas. https://doi.org/10.26274/z8b6-zx94",
+        "metadata_link": "https://doi.org/10.26274/z8b6-zx94",
+        "license": "CC-BY 4.0"
+    }
+    
+
     for row, col in tqdm(process_indices, total=total):
+        if stop_processing:  # If 'q' was pressed, exit cleanly
+            print("\nGraceful shutdown initiated...\n")
+            break
         lon, lat = xy(transform, row, col, offset="center")
 
         # Predict tide
@@ -313,56 +403,40 @@ def main():
         mlws_arr[row, j] = mlws
         mhws_arr[row, j] = mhws
 
-        # ==================
-        # DEBUG PLOTTING BLOCK
-        # ==================
+        # Debug plotting (only if --debug flag is set)
         if args.debug:
             phases = compute_moon_phases(start_dt, end_dt)
-
             plt.figure(figsize=(10, 5))
             plt.plot(times, tide_series, label="Tide Series", color="black")
 
-            # Add moon phase markers
             for phase, phase_time in phases:
                 color = "blue" if phase == "new" else "red"
                 linestyle = "--" if phase == "new" else "-."
-                plt.axvline(
-                    x=phase_time, color=color, linestyle=linestyle, alpha=0.7,
-                    label="New Moon" if phase == "new" else "Full Moon"
-                )
+                plt.axvline(x=phase_time, color=color, linestyle=linestyle, alpha=0.7,
+                            label="New Moon" if phase == "new" else "Full Moon")
 
-            # Add title with computed stats
-            plt.title(
-                f"Tide Prediction at (row={row}, col={col})\n"
-                f"LPT={lpt:.3f}, HPT={hpt:.3f}, MLWS={mlws:.3f}, MHWS={mhws:.3f}"
-            )
+            plt.title(f"Tide Prediction at (row={row}, col={col})\n"
+                      f"LPT={lpt:.3f}, HPT={hpt:.3f}, MLWS={mlws:.3f}, MHWS={mhws:.3f}")
 
             plt.xlabel("Time")
             plt.ylabel("Tide Elevation (m)")
             plt.grid(True)
             plt.legend()
-            plt.show(block=True)  # blocks execution until the plot window is closed
+            plt.show(block=True)
 
-            print(
-                f"\nDebug Info:\n"
-                f"  row={row}, col={col}\n"
-                f"  LPT (Lowest Predicted Tide) = {lpt:.3f}\n"
-                f"  HPT (Highest Predicted Tide) = {hpt:.3f}\n"
-                f"  MLWS (Mean Low Water Springs) = {mlws:.3f}\n"
-                f"  MHWS (Mean High Water Springs) = {mhws:.3f}\n"
-            )
+            print(f"\nDebug Info:\n"
+                  f"  row={row}, col={col}\n"
+                  f"  LPT = {lpt:.3f}\n"
+                  f"  HPT = {hpt:.3f}\n"
+                  f"  MLWS = {mlws:.3f}\n"
+                  f"  MHWS = {mhws:.3f}\n")
 
             input("Press Enter to continue to the next pixel...")
+            plt.close()
 
-            plt.close()  # close the figure to free memory
-            # ==================
-            # END DEBUG BLOCK
-            # ==================
-
-
+        # Save partial results every 10 pixels
         count += 1
-        if (count % 10) == 0:
-            # save partial results
+        if (count % 100) == 0:
             profile = {
                 "driver": "GTiff",
                 "height": height,
@@ -379,16 +453,12 @@ def main():
                 (mlws_arr, mlws_file),
                 (mhws_arr, mhws_file)
             ]:
-                with rasterio.open(f_, "w", **profile) as dst:
-                    dst.write(arr_, 1)
-                    dst.update_tags(
-                        start_date=str(args.start_date),
-                        end_date=str(args.end_date),
-                        time_step_hours=str(args.time_step),
-                        tide_model="EOT20_ManualTime",
-                    )
+                save_geotiff(f_, arr_, profile, metadata_tags)
 
+
+    # ---------------------------------------------------------------------------
     # Final save
+    # ---------------------------------------------------------------------------
     profile = {
         "driver": "GTiff",
         "height": height,
@@ -399,22 +469,21 @@ def main():
         "transform": transform,
         "nodata": np.nan
     }
+
     for arr_, f_ in [
         (lpt_arr, lpt_file),
         (hpt_arr, hpt_file),
         (mlws_arr, mlws_file),
         (mhws_arr, mhws_file)
     ]:
-        with rasterio.open(f_, "w", **profile) as dst:
-            dst.write(arr_, 1)
-            dst.update_tags(
-                start_date=str(args.start_date),
-                end_date=str(args.end_date),
-                time_step_hours=str(args.time_step),
-                tide_model="EOT20_ManualTime",
-            )
+        save_geotiff(f_, arr_, profile, metadata_tags)
 
-    print(f"Tidal statistics complete for slice {index}.")
+    if args.split>1:
+        print("To merge the multiple grids into the final grids run:")
+        print(f"python 04-merge_strips.py --split {args.split} --config {args.config}")
+    print(f"Tidal statistics complete for slice {args.index}. ")
+    print("Exiting program safely.")
+    sys.exit(0)  # Ensures a clean exit with status code 0
 
 if __name__ == "__main__":
     main()

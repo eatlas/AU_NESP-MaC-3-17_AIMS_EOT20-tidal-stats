@@ -1,0 +1,17 @@
+# This is a configuration for quickly testing the scripts as it only takes a few minutes to simulate.
+region_name: "King Sound"
+land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
+grid_bbox: [122, -18, 124, -16]
+grid_cell_size: 0.125
+land_overlap_px: 2
+grid_path: "working/EOT20-king-sound/grid.tif"
+tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
+clipped_tide_model_path: "working/EOT20-king-sound/ocean_tides"
+clipping_buffer_deg: 0.125
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+time_step: 1
+working_path: "working/EOT20-king-sound/tmp"
+lat_label: 'LPT'
+hat_label: 'HPT'
+output_path_prefix: "working/EOT20-king-sound/"
