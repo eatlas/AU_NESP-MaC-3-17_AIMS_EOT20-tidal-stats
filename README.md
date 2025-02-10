@@ -107,7 +107,7 @@ The configuration file is written in YAML and contains all the parameters needed
   _Type_: String
   _Description_: Label to used for the estimate of the Lowest Astronomical Tide (LAT) estimate. For a proper estimate of LAT a simulation of least 19 years is needed to cover the full lunar nodal cycle. In this case used 'LAT'. For shorter simulations a different name could be used such as 'LPT' for Lowest Predicted Tide. This label is used in the naming of the generated files to represent the statistic generated.
 
-  - **hpt_label**
+- **hpt_label**
   _Type_: String
   _Description_: Label to used for the estimate of the Highest Astronomical Tide (HAT) estimate. For a proper estimate of HAT a simulation of least 19 years is needed to cover the full lunar nodal cycle. In this case used 'HAT'. For shorter simulations a different name could be used such as 'HPT' for Highest Predicted Tide. This label is used in the naming of the generated files to represent the statistic generated.
 
@@ -116,14 +116,22 @@ The configuration file is written in YAML and contains all the parameters needed
 A sample configuration file (config.yaml) might look like this:
 
 ```yaml
+region_name: "King Sound"
 land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [122, -18, 124, -16]
 grid_cell_size: 0.125
 land_overlap_px: 2
-grid_path: "working/EOT20-King-sound/grid.tif"
-tide_model_path: "in-data-3p/World_EOT20_2021"
-clipped_tide_model_path: "working/EOT20-King-sound"
-clipping_buffer_deg: 0.5
+grid_path: "working/EOT20-king-sound/grid.tif"
+tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
+clipped_tide_model_path: "working/EOT20-king-sound/ocean_tides"
+clipping_buffer_deg: 0.125
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+time_step: 1
+working_path: "working/EOT20-king-sound/tmp"
+lat_label: 'LPT'
+hat_label: 'HPT'
+output_path_prefix: "working/EOT20-king-sound/"
 ```
 
 Using a YAML configuration file in this manner improves reproducibility by keeping all model-run parameters in one place. Subsequent scripts in your workflow can simply load the same YAML file to ensure consistency across the entire processing chain.

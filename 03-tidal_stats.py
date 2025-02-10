@@ -318,7 +318,7 @@ def main():
 
     # Build output filenames
     sim_years = f"{start_dt.strftime('%Y-%m')}_{end_dt.strftime('%Y-%m')}"
-    base = f"EOT20_{sim_years}_strip_{index}.tif"
+    base = f"EOT20_{sim_years}_strip_{index}.tif"    
     lpt_file = os.path.join(working_path, lat_label+"_" + base)
     hpt_file = os.path.join(working_path, hat_label+"_" + base)
     mlws_file = os.path.join(working_path, "MLWS_" + base)
