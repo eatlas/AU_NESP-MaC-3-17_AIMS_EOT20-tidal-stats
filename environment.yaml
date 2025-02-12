@@ -1,0 +1,16 @@
+name: eot20_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - rasterio
+  - geopandas
+  - shapely
+  - pandas
+  - matplotlib
+  - pyproj
+  - sympy
+  - xarray
+  - pyTMD
+  - pyyaml

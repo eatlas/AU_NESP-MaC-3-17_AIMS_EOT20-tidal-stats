@@ -1,8 +1,7 @@
 # This is a configuration for quickly testing the scripts as it only takes a few minutes to simulate.
-region_name: "King Sound"
 land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [122, -18, 124, -16]
-grid_cell_size: 0.125
+grid_cell_size: 0.0625
 land_overlap_px: 2
 grid_path: "working/EOT20-king-sound/grid.tif"
 tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
@@ -15,3 +14,9 @@ working_path: "working/EOT20-king-sound/tmp"
 lat_label: 'LPT'
 hat_label: 'HPT'
 output_path_prefix: "working/EOT20-king-sound/"
+author: "Eric Lawrey"
+organization: "Australian Institute of Marine Science"
+description: "Tidal statistics derived from EOT20 using pyTMD."
+reference: "This is only test data"
+metadata_link: ""
+license: "CC-BY 4.0"

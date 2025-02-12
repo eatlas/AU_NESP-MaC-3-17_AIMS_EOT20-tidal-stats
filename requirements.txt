@@ -1,0 +1,12 @@
+numpy
+rasterio
+geopandas
+shapely
+pandas
+matplotlib
+pyproj
+sympy
+xarray
+pyTMD
+pyyaml
+pathlib

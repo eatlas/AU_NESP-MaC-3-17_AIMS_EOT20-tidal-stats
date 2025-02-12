@@ -31,6 +31,120 @@ Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, Schwatke Christian, Passar
 
 Parker, B. (2007) _Tidal Analysis and Prediction NOAA Special Publication NOS CO-OPS 3_. National Oceanic and Atmospheric Administration, https://tidesandcurrents.noaa.gov/publications/Tidal_Analysis_and_Predictions.pdf
 
+# Installation
+
+# Installation Guide
+
+This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. Note: that the HPC instructions are untested and is currently just a proposed method based on what I think might work.
+
+## 1. Prerequisites
+- Ensure **Python 3.9+** is installed.
+- If using Conda, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or load the **conda module** (on HPC).
+- If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed.
+
+## 2. Clone the Repository
+```bash
+git clone https://github.com/eatlas/AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
+cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
+```
+
+## 3A. Using Conda (Recommended)
+Conda is recommended because it makes installing of GDAL, PROJ and GEOS more straight forward.
+
+1. Create the Conda environment
+    ```bash
+    conda env create -f environment.yaml
+    ```
+2. Activate the environment
+    ```bash
+    conda activate eot20_env
+    ```
+3. Verify installation
+    ```bash
+    python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
+    ```
+
+## 3B. Using Pip (Alternative)
+1. Create and activate a virtual environment
+    - Linux/macOS:
+        ```bash
+        python -m venv eot20_venv
+        source eot20_venv/bin/activate
+        ```
+    - Windows:
+        ```powershell
+        python -m venv eot20_venv
+        eot20_venv\Scripts\activate
+        ```
+2. Install dependencies
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## 4. Verify installation
+This should flush out whether the setup is mostly working. Once this is working you should run the quick test run.
+```bash
+python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
+```
+## 5. HPC Installation Notes
+This section is a place holder for documentation on how to get this code running on a HPC.
+
+# Testing the code
+Once you have an operating setup with all the libraries installed your first run of the code should be to run one of the small simulations that only takes a few minutes. This will identify any issues with the setup prior to performing the full run of the code.
+
+## Quick test run
+1. **Download source data**: This includes the EOT20 model tide constituent files and the land masking files.
+    ```bash
+    python 01-download-input-data.py
+    ```
+2. **Create the simulation grid**: Calculate a grid that we will perform the tidal simulation on. A YAML configuration file is used to specify the all the parameters of the simulation such as the bounding box, resolution, time extent, etc. In this quick run we will use a preconfigure example config file to simulate just one month for a small section of the Kimberly. This simulation will only take less than 1 minute. This script will make the model grid, and create a cropped version of the EOT20 tidal constituent files to make the simulation faster.
+    ```bash
+    python 02-tide_model_grid.py --config config/king-sound-quick-test.yaml
+    ```
+3. **Run the tidal model**: This will perform the tidal modelling over the simulation grid for the time period specified in the configuration file, then calculate the tidal statistics for each pixel in the grid.
+    ```bash
+    python 03-tidal_stats.py --config config\king-sound-quick-test.yaml
+    ```
+    This script has a feature to split the work into processes for parallel processing, but in this quick test it is not needed.
+4. **Consolidate the result and save to its final destination**: When the tidal simulation is split across multiple processes, each process calculates a separate portion of the grid (organised as strips). This script merges all the strips back into one raster per statistic and saves the result to the final destination (specified in the YAML config). In this run because we didn't split the job up this script simply makes a copy of the data into the final destination `working/EOT20-king-sound/`
+    ```bash
+    python 04-merge_strips.py --config config/king-sound-quick-test.yaml
+    ```
+    In `working/EOT20-king-sound/` you should find four GeoTiff files  
+    - `HPT_2024-01_2024-01.tif`
+    - `LPT_2024-01_2024-01.tif`
+    - `MHWS_2024-01_2024-01.tif`
+    - `MLWS_2024-01_2024-01.tif`
+
+    These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images because the data in the files is in 32 float.
+
+## Parallel test run
+This run is much larger than the quick test run as it simulated northern Australia over a 1 year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example we have split the number of parallel runs into 4 so that it can be run locally on a laptop for testing purposes. 
+
+Parallelise is achieve by splitting the task into multiple independed runs of the `03-tidal_stats.py` script that each process an independent strip of the final grid. The results are then merged together using the `04-merge_strips.py`. To split the processing we indicate to the script how many times the grid should be `split` and then provide each process with an `index` to indicate which portion it should process.
+
+Setup the Grid:
+```bash
+python 02-tide_model_grid.py --config config/northern-au-test.yaml
+```
+Start four command line windows to run four processes in parallel. On windows I am using conda and so each of these is an Anaconda prompt corresponding to the environment needed for this code. Running this code took 3 hr 18 min.
+
+```bash
+python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 0
+
+python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 1
+
+python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 2
+
+python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 3
+```
+Each script will write to standard out, but also write a log to `working\EOT20-nau-test\tmp`. The log files are intended to be useful for monitoring running the script on HPC.
+
+Merge the results:
+```bash
+python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
+```
+
 # Script descriptions
 The overall goal of the workflow is to generate high-resolution tidal datasets for Australian coastal and intertidal zones using the EOT20 global tidal model. The process is broken down into three modular scripts that each play a specific role in the workflow:
 
@@ -38,15 +152,16 @@ The overall goal of the workflow is to generate high-resolution tidal datasets f
 This script downloads all the source data used in the tidal modelling, including the EOT20 model tidal constituent data files and land clipping data.
 
 ## Tide-Model-Grid Script (02-tide_model_grid.py):
-This script sets the stage by generating a spatial grid (output as a GeoTIFF) that identifies which grid cells require tidal processing. Using a user-defined bounding box and cell resolution (default 1/8°). This grid acts as a mask for where the tidal modelling should be performed. The EOT20 tidal constituents do not provides over land and due to the large grid size a significant portion of intertidal areas have no tidal constituents available. To overcome this limitation we ensure that the Tide-Model-Grid includes one extra pixel overlap with land and in the Tidal-Stats script we use the extrapolation capabilities of the pyTMD library to calculate the tides in these locations. 
+This script sets the stage by generating a spatial grid (output as a GeoTIFF) that identifies which grid cells require tidal processing. Using a user-defined bounding box and cell resolution (default 1/8°). This grid acts as a mask for where the tidal modelling should be performed. The EOT20 tidal constituents cover land areas and due to their large grid size a significant portion of intertidal areas have no tidal constituents available. To overcome this we ensure that the Tide-Model-Grid includes extra pixel overlaps with land and in the Tidal-Stats script we use the extrapolation capabilities of the pyTMD library to calculate the tides in these locations. 
 
-To improve the performance of the modelling this script also creates a clipped version of the EOT20 tidal constituents to match the user-defined bounding box.
+To improve the performance of the modelling this script also creates a clipped version of the EOT20 tidal constituents to match the user-defined bounding box, with a bit of buffering.
 
 ## Tidal-Stats Script (03-tidal_stats.py):
-Building on the grid created by the first script, this script performs the core tidal simulations and computes statistics for each grid cell that is flagged for processing. Using the pyTMD library (or a placeholder function in our example), the script simulates tidal elevations over a specified time period (with a default time step of 0.5 hours) and extracts key statistics such as the lowest and highest predicted tides (LPT/HPT) and mean low and high water springs (MLWS/MHWS). To handle high-resolution data efficiently, the work is divided into vertical slices (parallelizable via user-specified split and index parameters), and the script supports restart capability by periodically saving intermediate results.
+Building on the grid created by the first script, this script performs the core tidal simulations and computes statistics for each grid cell that is flagged for processing. Using the pyTMD library, the script simulates tidal elevations over the specified time period and extracts key statistics such as the lowest and highest predicted tides (LPT/HPT) and mean low and high water springs (MLWS/MHWS). The MLWS and MHWS are calculated by averaging the tidal extremes during the periods (-0.5 days to +4days) of each new and full moons. 
+The tidal modelling can be slow as as accurate long time series simulations are needed to calculate accuracte statistics. To allow for faster processing the tidal modelling can be processed in independent strips. The strips are then merged back into the final full grid with the merge-strips script. The script also supports restart cancelling and restarting the processing as it periodically saves intermediate results. On restart it will resume from where it left off. 
 
 ## Merge-Strips Script (04-merge_strips.py):
-After the tidal statistics have been computed for each vertical slice, this final script merges the separate GeoTIFF outputs into complete, contiguous raster datasets for each tidal statistic. The merging process assumes that all partial outputs share the same coordinate reference system, resolution, and alignment, and the final merged files include all the necessary metadata for further analysis or dissemination.
+After the tidal statistics have been computed for each vertical slice, this final script merges the separate GeoTIFF outputs into complete, contiguous raster datasets for each tidal statistic. 
 
 # Model run configuration
 
