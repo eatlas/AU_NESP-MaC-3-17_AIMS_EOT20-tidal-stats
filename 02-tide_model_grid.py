@@ -13,7 +13,7 @@ Quick start example:
 import argparse
 import os
 import warnings
-from sympy import Array
+
 import tide_stats_module as tide_stats_module
 
 import numpy as np

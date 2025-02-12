@@ -1,5 +1,5 @@
 from data_downloader import DataDownloader
-from pyproj import CRS
+
 import os
 import zipfile
 
