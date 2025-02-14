@@ -2,7 +2,7 @@
 # This test takes approximately 1 hr 20 mins on a single core.
 land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [111, -27, 154, -9]
-grid_cell_size: 0.0625
+grid_cell_size: 0.03125
 land_overlap_px: 2
 grid_path: "working/EOT20-nau-test/grid.tif"
 tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
