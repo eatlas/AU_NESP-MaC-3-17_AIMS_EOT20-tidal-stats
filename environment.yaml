@@ -1,4 +1,4 @@
-name: eot20_env
+name: eot20-1_env
 channels:
   - conda-forge
 dependencies:

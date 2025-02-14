@@ -37,10 +37,16 @@ Parker, B. (2007) _Tidal Analysis and Prediction NOAA Special Publication NOS CO
 
 This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. Note: that the HPC instructions are untested and is currently just a proposed method based on what I think might work.
 
+
+
+
 ## 1. Prerequisites
 - Ensure **Python 3.9+** is installed.
 - If using Conda, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or load the **conda module** (on HPC).
 - If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed.
+
+
+
 
 ## 2. Clone the Repository
 ```bash
@@ -51,18 +57,19 @@ cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
 ## 3A. Using Conda (Recommended)
 Conda is recommended because it makes installing of GDAL, PROJ and GEOS more straight forward.
 
-1. Create the Conda environment
+1. Create the Conda environment. This step can take 10 min.
     ```bash
-    conda env create -f environment.yaml
+    conda env create -f environment-3-9-7.yaml
     ```
 2. Activate the environment
     ```bash
-    conda activate eot20_env
+    conda activate geo_env
     ```
 3. Verify installation
     ```bash
     python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
     ```
+
 
 ## 3B. Using Pip (Alternative)
 1. Create and activate a virtual environment
@@ -250,3 +257,136 @@ output_path_prefix: "working/EOT20-king-sound/"
 ```
 
 Using a YAML configuration file in this manner improves reproducibility by keeping all model-run parameters in one place. Subsequent scripts in your workflow can simply load the same YAML file to ensure consistency across the entire processing chain.
+
+---
+
+# Debugging
+
+### I have a new environment but the library imports fail
+python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\elawrey\Anaconda3\envs\eot20_env\lib\site-packages\rasterio\__init__.py", line 27, in <module>
+    from rasterio._vsiopener import _opener_registration
+ImportError: DLL load failed while importing _vsiopener: The specified procedure could not be found.
+
+Rasterio, GeoPandas, and other GIS libraries rely heavily on matching versions of GDAL, PROJ, libgeos, etc. If you install Rasterio from conda-forge, but GDAL or PROJ come from defaults, you often wind up with mismatched DLLs. I worked around this issue by building the environment with a different combination of library versions.
+
+### The scripts fails - 03-tidal_stats.py fails part way through simulation
+The 03-tidal_stats.py script sometimes fails midway through the simulation, seemingly due to a disk error. When it fails appears to be random and when it does fail, all parallel runs of the script fail with the error:
+```
+  File "rasterio\\_io.pyx", line 1466, in rasterio._io.DatasetWriterBase.__init__
+  File "rasterio\\_io.pyx", line 332, in rasterio._io._delete_dataset_if_exists
+  File "rasterio\\_err.pyx", line 195, in rasterio._err.exc_wrap_int
+rasterio._err.CPLE_AppDefinedError: Deleting working/EOT20-nau-test/tmp\LPT_EOT20_2023-01_2023-12_strip_1.tif failed: Invalid argument
+```
+Since all parallel runs fail simultaneously it seems likely that this is due to a temporary glitch with read/write operations to the external HD that I have been running the simulations on.
+
+---
+
+# Working out how to create a reproducible environment.
+Getting a working environment with GDAL, PROJ and GEOS is difficult. This section is a set of notes working through the problems with getting a working conda environment where the various libraries would play nice with each other. It is unclear whether any of this documentation will help get the code running on a different version of Python or on a different platform.
+
+### Attempt 1: Using Conda - environment.yaml no library versions
+I tried and failed building an environment using conda where I specify the Python version (3.11.1) and which libraries, but no version numbers for the libraries. This was specified in a `environment.yaml`. This ended up building the environment, but when I tested the enviornment it failed with a DLL error. This was possibly due to subtle version mismatches in the DLLs on Windows (theory proposed by ChatGPT, so take it with a grain of salt). The environment builds, but I ended up with `ImportError: DLL load failed while importing _vsiopener` error when loading `rasterio` and `geopandas`. 
+
+To resolve this issue I tried forcing the environment to be built using a single channel. This was in theory to help ensure consistent DLLs:
+```
+conda env create -f environment.yaml
+conda activate eot20_env
+conda config --env --set channel_priority strict
+conda install --override-channels -c conda-forge --update-deps --force-reinstall rasterio geopandas pyproj gdal
+```
+This was a very slow process, and never finished. It seems to stop after several hours. I left it overnight, no progress. Then after I went to copy and pasted the result it started making some process, as though it were paused. It repeatedly failed to solve for the environment.
+It ended up with the following error:
+```
+UnsatisfiableError: The following specifications were found
+to be incompatible with the existing python installation in your environment:
+
+Specifications:
+
+  - conda-env -> python[version='2.7.*|3.4.*|3.5.*']
+
+Your python: python=3.9
+```
+Turns out I forgot to activate the the new environment.
+
+Let's try again. Update conda:
+```
+conda update -n base -c defaults conda
+```
+
+
+
+### Attempt 2: Progress adding of libraries in Anaconda Navigator
+I tried building the environment using Anaconda Navigator, progressively adding key libraries to the environment until all were added. The plan was to then save the `environment.yaml` from this build. The advantage of this approach is that it specifies in detail the exact version of every libraries and all dependencies. This means that to recreate this environment conda doesn't need to resolve dependencies.
+
+For this I started with a vanilla Python 3.11.11 environment. A recent, but not the latest version. This version was chosen because I knew that these libraries work in this version. 
+Using the `defaults` channel I started with the main key libraries:
+- numpy 2.2.2
+- pandas 2.2.3
+- matplotlib-base 3.10.0
+- xarray 2024.11.0
+Success. Once these were installed I added spatial libraries:
+- rasterio 1.3.10
+- geopandas 0.14.2
+- shapely 2.0.6
+
+We now add the trailing dependencies. 
+- pyyaml 6.0.2
+
+After many hours the installation failed with an UnsatisfiableError. It seemed to indicate that maybe some packages didn't support Python 3.11.1.
+
+I also discovered that pyTMD was not found in the `defaults` channel and so as per [pyTDM install guide](https://pytmd.readthedocs.io/en/latest/getting_started/Install.html) I added the `conda-forge` channel. 
+
+I decided that this was a dead end. 
+
+### Attempt 3: Using the version numbers of an existing working environment
+My existing development Data Science Python environment has working libraries, but has many additional libraries that are not needed for the scripts in this dataset. The plan was to determine the version numbers of all the libraries and Python that matched the working environment. Create an `environment.yaml` from this information.
+
+The existing working setup has the following:
+python 3.9.7
+rasterio 1.3.10
+geopandas 0.12.2
+shapely 2.0.1
+numpy 1.26.0
+pandas 2.1.1
+matplotlib 3.7.2
+xarray 2024.1.1
+pyyaml 6.0.1
+pytmd 2.2.0
+
+I tried creating a `environmental.yaml` from this, but it led to a conflict between Shapely (2.0.1) and Rasterio (1.3.10) because they require different versions of GEOS. The error message indicated that Shapely 2.0.1 needs GEOS 3.11.1 - 3.11.2 and Rasterio 1.3.10 needs GEOS 3.12.1 or higher. Strangely the working environment has version 3.8.0 of GEOS installed and so should no technically work. This implies that the dependancy information associated with libraries is not reliable.
+
+To find a working combination I tried incrementing the shapely version until there was an overlap between rasterio and shapely. This was done with:
+```
+conda create -n test_env -c conda-forge shapely=2.0.2 rasterio=1.3.10
+```
+Just doing this with two packages made testing much faster. This showed that shapely 2.0.2 and rasterio 1.3.10 can work together. So I adjusted the `environmental-3-9-7.yaml` to 
+```yaml
+name: geo_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9.7
+  - rasterio=1.3.10
+  - geopandas=0.12.2
+  - shapely=2.0.2
+  - numpy=1.26.0
+  - pandas=2.1.1
+  - matplotlib=3.7.2
+  - xarray=2024.1.1
+  - pyyaml=6.0.1
+  - pytmd=2.2.0
+```
+```bash
+conda env create -f environment-3-9-7.yaml
+```
+
+This combination was successful in building.
+```
+conda activate geo_env
+python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
+All libraries imported successfully
+```
