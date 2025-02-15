@@ -1,4 +1,4 @@
-name: geo_env
+name: venv_eot20_3-9-7
 channels:
   - conda-forge
   - defaults

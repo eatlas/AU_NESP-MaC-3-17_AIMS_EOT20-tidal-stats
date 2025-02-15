@@ -23,6 +23,8 @@ Example parallel processing:
 """
 import argparse
 import os
+import glob
+import re
 import numpy as np
 import rasterio
 from rasterio.transform import xy
@@ -142,6 +144,24 @@ def main():
 
     print("Started script with the following configuration:")
     tide_stats_module.print_config(config)
+
+    # --- Check for resumption files with mismatched split counts ---
+    partial_files = glob.glob(os.path.join(working_path, "*strip_*.tif"))
+    if partial_files:
+        # Extract strip indices from filenames
+        existing_indices = []
+        for fname in partial_files:
+            m = re.search(r"strip_(\d+)", fname)
+            if m:
+                existing_indices.append(int(m.group(1)))
+        # If any file has an index that is not valid for the current split, warn the user
+        if any(idx >= args.split for idx in existing_indices):
+            msg = (f"Detected resumption files with strip indices up to {max(existing_indices)} "
+                f"but current '--split' value is {args.split}. "
+                "This indicates that the resumption files were generated with a different split. "
+                "Please delete the existing partial files or run the script with '--split' set to "
+                f"{max(existing_indices)+1}.")
+            raise ValueError(msg)
 
     start_dt = datetime.strptime(start_date, "%Y-%m-%d")
     end_dt = datetime.strptime(end_date, "%Y-%m-%d")

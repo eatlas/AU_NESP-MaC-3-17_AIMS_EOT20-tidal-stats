@@ -5,11 +5,11 @@ Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS) derived from 
 
 ## Introduction
 
-Tides play a crucial role in shaping coastal and marine environments, influencing processes such as sediment transport, water clarity, and the distribution of ecosystems. In particular, the tidal range—the difference between high and low tides—has significant implications for the physical and biological dynamics of intertidal regions. For coral reefs, tidal fluctuations determine the exposure and submersion of reef structures, influencing reef zonation, biodiversity, and habitat accessibility. Accurate and detailed tidal information is therefore essential for understanding, monitoring, and managing these critical ecosystems.
+Tides play a crucial role in shaping coastal and marine environments, influencing processes such as sediment transport, water clarity, the distribution of ecosystems and the structure of coral reefs. In particular, the tidal range—the difference between high and low tides—has significant implications for the physical and biological dynamics of intertidal regions. For coral reefs, tidal fluctuations determine the exposure and submersion of reef structures, influencing reef zonation, biodiversity, and habitat structure. Accurate and detailed tidal information is therefore essential for understanding these critical ecosystems.
 
-Despite the importance of tidal dynamics, datasets that map key tidal statistics, such as Lowest Astronomical Tide (LAT), Highest Astronomical Tide (HAT), Mean Low Spring Water (MLSW), Mean High Spring Water (MHSW), and tidal range, remain limited in spatial resolution and regional specificity. This gap is particularly evident for Australian waters, which host diverse and globally significant coral reef systems, such as the Great Barrier Reef, and extensive intertidal regions. High-quality tidal data are essential for mapping and monitoring these environments, particularly in applications such as delineating LAT boundaries for navigation and habitat mapping, and assessing the impacts of tidal range on nearshore turbidity and satellite imagery interpretation.
+Despite the importance of tidal dynamics there are few public datasets that make tidal statistic, such as Lowest Astronomical Tide (LAT), Highest Astronomical Tide (HAT), Mean Low Spring Water (MLSW), Mean High Spring Water (MHSW), and tidal range readily available at a national scale. [Digital Earth Australia's Intertidal mapping](https://www.ga.gov.au/scientific-topics/dea/dea-data-and-products/dea-intertidal) combined tidal modelling as an integral part of interpretting marine satellite imagery (Bishop-Taylor, et al., 2019). They used tidal modelling to know the height of the water in each satellite image, then used this information, combined with calculating the Normalised Differene Water Index to determine what areas were wet and dry in each image. This allowed them to slowly build up an accurate 3D model of the intertidal region. As part of this analysis they showed that sun synchronous satellites, such as the Sentinel 2 satellite used for the coastal imaging, only observes a limited portion of the full tidal range. As part of this analysis they developed a intertidal tidal statistics such as LAT and HAT, also based on the EOT20 dataset using in this dataset. This dataset is however difficult to work with in traditional GIS applications as it is broken into hundreds of tile images each representing 100 km2. This tiling is necessary because the data has been interpolated down to 10 m resolution from the original 1/8 degree grid from the EOT20 modelling. The other limitation of this existing dataset is that is only covers the intertidal areas of Australia.
 
-To address this need, we developed a high-resolution dataset derived from the EOT20 global tidal model, tailored specifically to Australian waters. This dataset provides spatially explicit information on LAT, HAT, MLSW, MHSW, and tidal range, offering a detailed understanding of tidal dynamics across the region.
+This dataset seeks to create national scale tidal statistics at sufficient resolution that fully represents the detail in the original tidal model. In this dataset we calculate the tidal statistics at 4x the resolution of the EOT20 model resulting in a grid resolution of 1/32 degree. 
 
 The primary driver for the development of this dataset was to assist in the mapping of coral reefs and intertidal zones, particularly in areas where tidal range plays a significant role in modulating visibility and habitat exposure. For instance, understanding the relationship between tidal range and satellite-derived waterline positions can guide the use of all-tide or low-tide composite imagery for detecting LAT. This distinction is critical in regions with high tidal ranges, where the disparity between Mean Sea Level (MSL) and LAT can introduce significant errors in mapping efforts.
 
@@ -22,31 +22,30 @@ EOT20 provides seventeen tidal constituents, including both primary components l
 
 # Methods:
 
-The high resolution tidal dataset was generated using a suite of Python scripts that integrate the EOT20 global tidal model with robust geospatial processing routines. The overall methodology consists of three primary stages: the creation of a processing grid (Tide-Model-Grid), the computation of tidal statistics (Tidal-Stats), and the subsequent merging of spatial subsets (Merge-Strips). These stages work in concert to produce spatially explicit estimates of tidal parameters—including estimates of the Lowest and Highest Astronomical Tides (LAT/HAT) or their predicted counterparts (LPT/HPT), as well as Mean Low Water Springs (MLWS) and Mean High Water Springs (MHWS)—tailored to the coastal and intertidal environments of Australian waters.
+The high resolution tidal dataset was generated using a suite of Python scripts. The overall methodology consists of four primary stages: download the tidal model and other source data, the creation of a processing grid (Tide-Model-Grid), the computation of tidal statistics (Tidal-Stats), and the subsequent merging of spatial subsets (Merge-Strips). These stages work in concert to produce spatially explicit estimates of tidal parameters—including estimates of the Lowest and Highest Astronomical Tides (LAT/HAT) or their predicted counterparts (LPT/HPT), as well as Mean Low Water Springs (MLWS) and Mean High Water Springs (MHWS)—tailored to the coastal and intertidal environments of Australian waters.
 
 # References
+
+Bishop-Taylor, R., Sagar, S., Lymburner, L., & Beaman, R. J. (2019). Between the tides: Modelling the elevation of Australia’s exposed intertidal zone at continental scale. Estuarine, Coastal and Shelf Science, 223, 115–128. https://doi.org/10.1016/j.ecss.2019.03.006
+
 Hart-Davis, M. G., Piccioni, G., Dettmering, D., Schwatke, C., Passaro, M., and Seitz, F. (2021a) _EOT20: a global ocean tide model from multi-mission satellite altimetry_. Earth Syst. Sci. Data, 13, 3869–3884. https://doi.org/10.5194/essd-13-3869-2021
 
 Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, Schwatke Christian, Passaro Marcello, Seitz Florian (2021b). _EOT20 - A global Empirical Ocean Tide model from multi-mission satellite altimetry_. \[Dataset\] SEANOE. https://doi.org/10.17882/79489
 
 Parker, B. (2007) _Tidal Analysis and Prediction NOAA Special Publication NOS CO-OPS 3_. National Oceanic and Atmospheric Administration, https://tidesandcurrents.noaa.gov/publications/Tidal_Analysis_and_Predictions.pdf
 
+
+
 # Installation
 
 # Installation Guide
 
-This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. Note: that the HPC instructions are untested and is currently just a proposed method based on what I think might work.
-
-
-
+This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. Note: that the HPC and Linux instructions are untested and is currently just a proposed method based on what I think might work.
 
 ## 1. Prerequisites
 - Ensure **Python 3.9+** is installed.
 - If using Conda, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or load the **conda module** (on HPC).
-- If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed.
-
-
-
+- If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed. These should be installed using the provided pip instructions, however success will vary across platforms.
 
 ## 2. Clone the Repository
 ```bash
@@ -59,40 +58,55 @@ Conda is recommended because it makes installing of GDAL, PROJ and GEOS more str
 
 1. Create the Conda environment. This step can take 10 min.
     ```bash
-    conda env create -f environment-3-9-7.yaml
+    conda env create -f environment-3-13.yaml
     ```
 2. Activate the environment
     ```bash
-    conda activate geo_env
+    conda activate venv_eot20_3_13
     ```
-3. Verify installation
-    ```bash
-    python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
-    ```
+A second version the environment script is provided (`environment-3-9-7.yaml`) that builds older version of Python and libraries that has been tested to work. This is provided as a reference to help getting the code to run on older versions of Python. 
 
+I found that conda struggles building the environments when the specific library version numbers are not specified. The two versions provided were tested to work on Windows.
 
 ## 3B. Using Pip (Alternative)
-1. Create and activate a virtual environment
-    - Linux/macOS:
-        ```bash
-        python -m venv eot20_venv
-        source eot20_venv/bin/activate
-        ```
-    - Windows:
-        ```powershell
-        python -m venv eot20_venv
-        eot20_venv\Scripts\activate
-        ```
-2. Install dependencies
-    ```bash
-    pip install -r requirements.txt
+The virtual environment will be created at the root of the folder that the command is run. It is most common to run this in the project folder. For this you will already need Python to be installed. The code has been tested on Python 3.9.7
+
+For setting up with plain Python in Windows.
+1. Download [Python 3.13](https://www.python.org/downloads/release/python-3131/). 
+2. Install Python to the default user space `C:\Users\<user>\AppData\Local\Programs\Python\Python313\`, replacing `<user>` for you username.
+3. Create the virtual environment in the project folder. Open a command window and navigate to the project directory. 
+    ```cmd
+    cd <path to project repo>\AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
+    "C:\Users\<user>\AppData\Local\Programs\Python\Python313\python.exe" -m venv venv_eot20_3_13
     ```
+    **Remember to swap out the user** in the path.
+4. Activate the environment
+  For windows (command prompt CMD)
+  ```cmd
+  venv_eot20_3_13\Scripts\activate.bat
+  ```
+
+  ```
+  For macOS/Linux (untested)
+  ```bash
+  source eot20_venv/bin/activate
+  ```
+4. Install dependencies
+    ```cmd
+    pip install -r requirements-3-13.txt
+    ```
+There is also a `requirements-3-9.txt` that is the version of libraries that are known to work with Python 3.9.
 
 ## 4. Verify installation
 This should flush out whether the setup is mostly working. Once this is working you should run the quick test run.
 ```bash
 python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
 ```
+Another test that is only relevant for the environment-3-9-7.yaml:
+```bash
+python -c "import geopandas as gpd, fiona; print(gpd.__version__); print(fiona.__version__)"
+```
+
 ## 5. HPC Installation Notes
 This section is a place holder for documentation on how to get this code running on a HPC.
 
@@ -104,16 +118,16 @@ Once you have an operating setup with all the libraries installed your first run
     ```bash
     python 01-download-input-data.py
     ```
-2. **Create the simulation grid**: Calculate a grid that we will perform the tidal simulation on. A YAML configuration file is used to specify the all the parameters of the simulation such as the bounding box, resolution, time extent, etc. In this quick run we will use a preconfigure example config file to simulate just one month for a small section of the Kimberly. This simulation will only take less than 1 minute. This script will make the model grid, and create a cropped version of the EOT20 tidal constituent files to make the simulation faster.
+2. **Create the simulation grid**: Calculate a grid that we will perform the tidal simulation on. A YAML configuration file is used to specify the all the parameters of the simulation such as the bounding box, resolution, time extent, etc. In this quick run we will use a preconfigured example config file to simulate just one month for a small section of the Kimberly in Western Australia. This simulation will only take less than 1 minute. This script will make the model grid, and create a cropped version of the EOT20 tidal constituent files to make the simulation faster.
     ```bash
     python 02-tide_model_grid.py --config config/king-sound-quick-test.yaml
     ```
 3. **Run the tidal model**: This will perform the tidal modelling over the simulation grid for the time period specified in the configuration file, then calculate the tidal statistics for each pixel in the grid.
     ```bash
-    python 03-tidal_stats.py --config config\king-sound-quick-test.yaml
+    python 03-tidal_stats.py --config config/king-sound-quick-test.yaml
     ```
     This script has a feature to split the work into processes for parallel processing, but in this quick test it is not needed.
-4. **Consolidate the result and save to its final destination**: When the tidal simulation is split across multiple processes, each process calculates a separate portion of the grid (organised as strips). This script merges all the strips back into one raster per statistic and saves the result to the final destination (specified in the YAML config). In this run because we didn't split the job up this script simply makes a copy of the data into the final destination `working/EOT20-king-sound/`
+4. **Consolidate the result and save to its final destination**: When the tidal simulation is split across multiple processes, each process calculates a separate portion of the grid (organised as strips). This script merges all the strips back into one raster per statistic and saves the result to the final destination (specified in the YAML config). In this run because we didn't split the job up, so this script simply makes a copy of the data into the final destination `working/EOT20-king-sound/`
     ```bash
     python 04-merge_strips.py --config config/king-sound-quick-test.yaml
     ```
@@ -123,12 +137,12 @@ Once you have an operating setup with all the libraries installed your first run
     - `MHWS_2024-01_2024-01.tif`
     - `MLWS_2024-01_2024-01.tif`
 
-    These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images because the data in the files is in 32 float.
+    These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images properly because the data in the files is in 32 bit float.
 
 ## Parallel test run
 This run is much larger than the quick test run as it simulated northern Australia over a 1 year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example we have split the number of parallel runs into 4 so that it can be run locally on a laptop for testing purposes. 
 
-Parallelise is achieve by splitting the task into multiple independed runs of the `03-tidal_stats.py` script that each process an independent strip of the final grid. The results are then merged together using the `04-merge_strips.py`. To split the processing we indicate to the script how many times the grid should be `split` and then provide each process with an `index` to indicate which portion it should process.
+Parallelism is achieved by splitting the task into multiple independed runs of the `03-tidal_stats.py` script that each process an independent strip of the final grid. The results are then merged together using the `04-merge_strips.py`. To split the processing we indicate to the script how many vertical strips the grid should be `split` and then provide each process with an `index` to indicate which portion it should process.
 
 Setup the Grid:
 ```bash
@@ -153,7 +167,7 @@ python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
 ```
 
 # Script descriptions
-The overall goal of the workflow is to generate high-resolution tidal datasets for Australian coastal and intertidal zones using the EOT20 global tidal model. The process is broken down into three modular scripts that each play a specific role in the workflow:
+The overall goal of the workflow is to generate high-resolution tidal datasets for Australian coastal and intertidal zones using the EOT20 global tidal model. The process is broken down into four modular scripts that each play a specific role in the workflow:
 
 ## Data Download Script (01-download-input-data.py):
 This script downloads all the source data used in the tidal modelling, including the EOT20 model tidal constituent data files and land clipping data.
@@ -262,6 +276,8 @@ Using a YAML configuration file in this manner improves reproducibility by keepi
 
 # Debugging
 
+ Getting a working environment with GDAL, PROJ and GEOS is difficult. This section is a set of notes working through the problems with getting a working conda environment where the various libraries would play nice with each other. It is unclear whether any of this documentation will help get the code running on a different version of Python or on a different platform.
+
 ### I have a new environment but the library imports fail
 python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
 Traceback (most recent call last):
@@ -282,13 +298,21 @@ rasterio._err.CPLE_AppDefinedError: Deleting working/EOT20-nau-test/tmp\LPT_EOT2
 ```
 Since all parallel runs fail simultaneously it seems likely that this is due to a temporary glitch with read/write operations to the external HD that I have been running the simulations on.
 
----
+### Conda install - Error while installing libjpeg package
+When installing with conda:
 
-# Working out how to create a reproducible environment.
-Getting a working environment with GDAL, PROJ and GEOS is difficult. This section is a set of notes working through the problems with getting a working conda environment where the various libraries would play nice with each other. It is unclear whether any of this documentation will help get the code running on a different version of Python or on a different platform.
+```
+ERROR conda.core.link:_execute(938): An error occurred while installing package 'conda-forge::libjpeg-turbo-3.0.0-hcfcfb64_1'.
+Rolling back transaction: done
 
-### Attempt 1: Using Conda - environment.yaml no library versions
-I tried and failed building an environment using conda where I specify the Python version (3.11.1) and which libraries, but no version numbers for the libraries. This was specified in a `environment.yaml`. This ended up building the environment, but when I tested the enviornment it failed with a DLL error. This was possibly due to subtle version mismatches in the DLLs on Windows (theory proposed by ChatGPT, so take it with a grain of salt). The environment builds, but I ended up with `ImportError: DLL load failed while importing _vsiopener` error when loading `rasterio` and `geopandas`. 
+[Errno 13] Permission denied: 'C:\\Users\\elawrey\\Anaconda3\\pkgs\\libjpeg-turbo-3.0.0-hcfcfb64_1\\Library\\bin\\wrjpgcom.exe'
+()
+```
+Deleting the `C:\\Users\\elawrey\\Anaconda3\\pkgs\\libjpeg-turbo-3.0.0-hcfcfb64_1` folder (which requires admin privledges) then rerunning the conda environment setup installation worked.
+
+
+### Conda attempt 1: Using Conda - environment.yaml no library versions
+I tried and failed building an environment using conda where I specify the Python version (3.9) and which libraries, but no version numbers for the libraries. This was specified in a `environment.yaml`. This ended up building the environment, but when I tested the enviornment it failed with a DLL error. This was possibly due to subtle version mismatches in the DLLs on Windows (theory proposed by ChatGPT, so take it with a grain of salt). The environment builds, but I ended up with `ImportError: DLL load failed while importing _vsiopener` error when loading `rasterio` and `geopandas`. 
 
 To resolve this issue I tried forcing the environment to be built using a single channel. This was in theory to help ensure consistent DLLs:
 ```
@@ -297,8 +321,7 @@ conda activate eot20_env
 conda config --env --set channel_priority strict
 conda install --override-channels -c conda-forge --update-deps --force-reinstall rasterio geopandas pyproj gdal
 ```
-This was a very slow process, and never finished. It seems to stop after several hours. I left it overnight, no progress. Then after I went to copy and pasted the result it started making some process, as though it were paused. It repeatedly failed to solve for the environment.
-It ended up with the following error:
+This was a very slow process, but when it completed it ended up with the following error:
 ```
 UnsatisfiableError: The following specifications were found
 to be incompatible with the existing python installation in your environment:
@@ -308,17 +331,10 @@ Specifications:
   - conda-env -> python[version='2.7.*|3.4.*|3.5.*']
 
 Your python: python=3.9
-```
-Turns out I forgot to activate the the new environment.
-
-Let's try again. Update conda:
-```
-conda update -n base -c defaults conda
-```
+Not sure what the problem was here. Conda seems to struggle to work out which versions of the libraries are compatible with each other. 
 
 
-
-### Attempt 2: Progress adding of libraries in Anaconda Navigator
+### Conda install attempt 2: Progress adding of libraries in Anaconda Navigator
 I tried building the environment using Anaconda Navigator, progressively adding key libraries to the environment until all were added. The plan was to then save the `environment.yaml` from this build. The advantage of this approach is that it specifies in detail the exact version of every libraries and all dependencies. This means that to recreate this environment conda doesn't need to resolve dependencies.
 
 For this I started with a vanilla Python 3.11.11 environment. A recent, but not the latest version. This version was chosen because I knew that these libraries work in this version. 
@@ -341,7 +357,7 @@ I also discovered that pyTMD was not found in the `defaults` channel and so as p
 
 I decided that this was a dead end. 
 
-### Attempt 3: Using the version numbers of an existing working environment
+### Conda attempt 3: Using the version numbers of an existing working environment
 My existing development Data Science Python environment has working libraries, but has many additional libraries that are not needed for the scripts in this dataset. The plan was to determine the version numbers of all the libraries and Python that matched the working environment. Create an `environment.yaml` from this information.
 
 The existing working setup has the following:
@@ -356,7 +372,7 @@ xarray 2024.1.1
 pyyaml 6.0.1
 pytmd 2.2.0
 
-I tried creating a `environmental.yaml` from this, but it led to a conflict between Shapely (2.0.1) and Rasterio (1.3.10) because they require different versions of GEOS. The error message indicated that Shapely 2.0.1 needs GEOS 3.11.1 - 3.11.2 and Rasterio 1.3.10 needs GEOS 3.12.1 or higher. Strangely the working environment has version 3.8.0 of GEOS installed and so should no technically work. This implies that the dependancy information associated with libraries is not reliable.
+I tried creating a `environmental.yaml` from this, but it led to a conflict between Shapely (2.0.1) and Rasterio (1.3.10) because they require different versions of GEOS. The error message indicated that Shapely 2.0.1 needs GEOS 3.11.1 - 3.11.2 and Rasterio 1.3.10 needs GEOS 3.12.1 or higher. Strangely the working environment has version 3.8.0 of GEOS installed and so should not technically work. This implies that the dependancy information associated with libraries is not reliable.
 
 To find a working combination I tried incrementing the shapely version until there was an overlap between rasterio and shapely. This was done with:
 ```
@@ -390,3 +406,43 @@ conda activate geo_env
 python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
 All libraries imported successfully
 ```
+
+### Building a latest version 
+Since Python 3.9.7 was quite old, I want a version of the build that would be more modern. I decided to simply try creating an environment.yaml specifying all the latest stable versions of the libraries and Python. To find the version numbers I just looking at the source code repos in GitHub for each library, looking at the release tags. 
+This approach worked. It seems that the libraries are generally quite compatible with each other, even if conda can't find a solution. This result was saved to `environment-3-13.yaml`
+
+### Pip install debugging - Pip install fails because it can't install Python - Windows
+I started with the version of python specified in the requirements.txt file thinking that this would be a good way to specified a version of Python known to work that should be used, unfortunately the pip install fails with the following error:
+```cmd
+ERROR: Could not find a version that satisfies the requirement python==3.9.7 (from versions: none)
+ERROR: No matching distribution found for python==3.9.7
+```cmd
+The reason this error is that pip can not be used to install a version of python. This is not how pip works. Pip only installs packages into an existing Python installation. To fix this I removed `python==3.9.7` from the `requirements.txt`. I built a conda environment with the Python version, then tested the pip install.
+
+### Pip install debugging - Running 02-tide_model_grid fails with a fiona problem
+When running the quick test on a new installation from using pip I found the following problem:
+```cmd 
+python 02-tide_model_grid.py --config config/king-sound-quick-test.yaml
+```
+```
+Started script with the following configuration:
+Configuration parameters:
+...
+File "D:\AU_AIMS_MARB-S2-comp_p15\AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats\eot20_venv\lib\site-packages\geopandas\io\file.py", line 164, in _is_zip
+    parsed = fiona.path.ParsedPath.from_uri(path)
+AttributeError: module 'fiona' has no attribute 'path'
+```
+This error occurs because pip installed two incompatible version of fiona and geopandas. 
+
+Running
+```cmd
+python -c "import geopandas as gpd, fiona; print(gpd.__version__); print(fiona.__version__)"
+```
+Returns:
+```
+0.12.2
+1.10.1
+```
+It turns out that version 1.10.1 of Fiona is not compatible with GeoPandas 0.12.2. Unfortunately there are no compatibility tables and we instead rely on our conda install to find out that 0.12.2 of geopandas works with 1.9.6 of fiona and we add that to the `requirements.txt`. [Geopandas supports two engines](https://geopandas.org/en/latest/docs/user_guide/fiona_to_pyogrio.html) work reading and writing, Fiona and Pygrio. For version GeoPandas 0.12.2 that we have managed to get to work has fiona listed as a [dependancy](https://github.com/geopandas/geopandas/blob/efcb3675d94935ee19b06c75467f9ccc24eb8843/environment.yml) but there is no version constraints.
+
+This error should only occur with older versions of Geopandas, as recent versions no longer use Fiona.
