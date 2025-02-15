@@ -86,7 +86,6 @@ For setting up with plain Python in Windows.
   venv_eot20_3_13\Scripts\activate.bat
   ```
 
-  ```
   For macOS/Linux (untested)
   ```bash
   source eot20_venv/bin/activate
@@ -101,10 +100,6 @@ There is also a `requirements-3-9.txt` that is the version of libraries that are
 This should flush out whether the setup is mostly working. Once this is working you should run the quick test run.
 ```bash
 python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
-```
-Another test that is only relevant for the environment-3-9-7.yaml:
-```bash
-python -c "import geopandas as gpd, fiona; print(gpd.__version__); print(fiona.__version__)"
 ```
 
 ## 5. HPC Installation Notes
@@ -331,6 +326,7 @@ Specifications:
   - conda-env -> python[version='2.7.*|3.4.*|3.5.*']
 
 Your python: python=3.9
+```
 Not sure what the problem was here. Conda seems to struggle to work out which versions of the libraries are compatible with each other. 
 
 
@@ -407,8 +403,8 @@ python -c "import rasterio, geopandas, pyTMD; print('All libraries imported succ
 All libraries imported successfully
 ```
 
-### Building a latest version 
-Since Python 3.9.7 was quite old, I want a version of the build that would be more modern. I decided to simply try creating an environment.yaml specifying all the latest stable versions of the libraries and Python. To find the version numbers I just looking at the source code repos in GitHub for each library, looking at the release tags. 
+### Building an environment with the latest libraries 
+Since Python 3.9.7 was quite old, I wanted a version of the build that would be more modern. I decided to simply try creating a `environment.yaml` specifying all the latest stable versions of the libraries and Python. To find the version numbers I just look at the source code repos in GitHub for each library (finding them with a Google Search for `<library name> source`) then looking at the release tags. 
 This approach worked. It seems that the libraries are generally quite compatible with each other, even if conda can't find a solution. This result was saved to `environment-3-13.yaml`
 
 ### Pip install debugging - Pip install fails because it can't install Python - Windows
@@ -416,7 +412,7 @@ I started with the version of python specified in the requirements.txt file thin
 ```cmd
 ERROR: Could not find a version that satisfies the requirement python==3.9.7 (from versions: none)
 ERROR: No matching distribution found for python==3.9.7
-```cmd
+```
 The reason this error is that pip can not be used to install a version of python. This is not how pip works. Pip only installs packages into an existing Python installation. To fix this I removed `python==3.9.7` from the `requirements.txt`. I built a conda environment with the Python version, then tested the pip install.
 
 ### Pip install debugging - Running 02-tide_model_grid fails with a fiona problem
@@ -424,8 +420,9 @@ When running the quick test on a new installation from using pip I found the fol
 ```cmd 
 python 02-tide_model_grid.py --config config/king-sound-quick-test.yaml
 ```
-```
+
 Started script with the following configuration:
+```
 Configuration parameters:
 ...
 File "D:\AU_AIMS_MARB-S2-comp_p15\AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats\eot20_venv\lib\site-packages\geopandas\io\file.py", line 164, in _is_zip
