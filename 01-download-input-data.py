@@ -2,10 +2,11 @@ from data_downloader import DataDownloader
 
 import os
 import zipfile
+import csv
+
 
 # Create an instance of the DataDownloader class
 downloader = DataDownloader(download_path="in-data-3p")
-VERSION = '1-1'
 
 # --------------------------------------------------------
 # Function to unzip a file to a specified directory
@@ -66,3 +67,26 @@ if os.path.exists(load_tides_zip):
 
 print("All files are downloaded and prepared.")
 
+# --------------------------------------------------------
+# Tide Gauge Monthly Stats Data
+# Source: http://www.bom.gov.au/oceanography/projects/abslmp/data/monthly.shtml
+
+# Path to the CSV file containing tide gauge data
+tide_gauges_csv = "in-data/ABSLMP_tide-gauges.csv"
+
+# Define the destination folder for the tide gauge monthly stats
+tide_stats_folder = os.path.join(downloader.download_path, "AU_BOM_AMSLMP-monthly-tide-stats")
+os.makedirs(tide_stats_folder, exist_ok=True)
+
+# Open the CSV and iterate through each tide gauge entry
+with open(tide_gauges_csv, newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        monthly_stats_url = row["MonthlyStatsURL"]
+        # Generate a filename using the tide gauge ID.
+        file_name = f"{row['ID']}.txt"
+        destination_file = os.path.join(tide_stats_folder, file_name)
+        
+        print(f"Downloading monthly tide stats for {row['StationName']} from {monthly_stats_url}...")
+        downloader.download(monthly_stats_url, destination_file)
+        print(f"Downloaded {destination_file} successfully!")

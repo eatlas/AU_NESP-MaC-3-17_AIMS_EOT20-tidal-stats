@@ -1,4 +1,7 @@
 # EOT20-tidal-stats: Tidal statistics for Australia - Processing scripts
+[![Metadata record](https://img.shields.io/badge/DOI-10.26274%2Fz8b6--zx94-blue)](
+https://doi.org/10.26274/z8b6-zx94)
+
 This repository provides a record of the scripts used in the development of the AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats dataset. More details are provided in the dataset metadata:
 
 Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS) derived from the EOT20 tidal model (NESP MaC 3.17, AIMS) (V1) [Data set]. eAtlas. https://doi.org/10.26274/z8b6-zx94
@@ -35,8 +38,9 @@ Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, Schwatke Christian, Passar
 Parker, B. (2007) _Tidal Analysis and Prediction NOAA Special Publication NOS CO-OPS 3_. National Oceanic and Atmospheric Administration, https://tidesandcurrents.noaa.gov/publications/Tidal_Analysis_and_Predictions.pdf
 
 
+# License
+The code associated with this dataset is made available under an MIT license. The generated dataset is made available under a Creative Commons Attribution 4.0 International license.
 
-# Installation
 
 # Installation Guide
 

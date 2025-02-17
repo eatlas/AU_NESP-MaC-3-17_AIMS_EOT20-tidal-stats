@@ -1,0 +1,16 @@
+StationName,State,ID,Latitude,Longitude,MetadataURL,MonthlyStatsURL
+Cape Ferguson,Queensland,IDO71051SLD,-19.2774,147.0586,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59260.pdf,http://www.bom.gov.au/ntc/IDO71051/IDO71051SLD.txt
+Rosslyn Bay,Queensland,IDO71052SLD,-23.161,150.7901,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59670.pdf,http://www.bom.gov.au/ntc/IDO71052/IDO71052SLD.txt
+Port Kembla,New South Wales,IDO71053SLD,-34.4734,150.9118,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60420.pdf,http://www.bom.gov.au/ntc/IDO71053/IDO71053SLD.txt
+Burnie,Tasmania,IDO71055SLD,-41.05,145.9149,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60910.pdf,http://www.bom.gov.au/ntc/IDO71055/IDO71055SLD.txt
+Spring Bay,Tasmania,IDO71057SLD,-42.5464,147.9308,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61170.pdf,http://www.bom.gov.au/ntc/IDO71057/IDO71057SLD.txt
+Portland,Victoria,IDO71058SLD,-38.3439,141.6136,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61410.pdf,http://www.bom.gov.au/ntc/IDO71058/IDO71058SLD.txt
+Port Stanvac,South Australia,IDO71059SLD,-35.1085,138.4671,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61583.pdf,http://www.bom.gov.au/ntc/IDO71059/IDO71059SLD.txt
+Thevenard,South Australia,IDO71060SLD,-32.149,133.6416,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62000.pdf,http://www.bom.gov.au/ntc/IDO71060/IDO71060SLD.txt
+Esperance,Western Australia,IDO71061SLD,-33.8707,121.8971,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62080.pdf,http://www.bom.gov.au/ntc/IDO71061/IDO71061SLD.txt
+Hillarys,Western Australia,IDO71062SLD,-31.8256,115.7386,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62237.pdf,http://www.bom.gov.au/ntc/IDO71062/IDO71062SLD.txt
+Broome,Western Australia,IDO71063SLD,-18.0008,122.2183,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62650.pdf,http://www.bom.gov.au/ntc/IDO71063/IDO71063SLD.txt
+Darwin,Northern Territory,IDO71064SLD,-12.4719,130.8458,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63230.pdf,http://www.bom.gov.au/ntc/IDO71064/IDO71064SLD.txt
+Milner Bay - Groote Eylandt,Northern Territory,IDO71065SLD,-13.86,136.4158,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63511.pdf,http://www.bom.gov.au/ntc/IDO71065/IDO71065SLD.txt
+Cocos - Keeling Islands,(Home Island) Indian Ocean,IDO71066SLD,-12.1168,96.8919,http://www.bom.gov.au/ntc/IDO50000/IDO50000_46280.pdf,http://www.bom.gov.au/ntc/IDO71066/IDO71066SLD.txt
+Thursday Island,"Torres Strait, Queensland",IDO71067SLD,-10.5863,142.2215,https://www.qld.gov.au/environment/coasts-waterways/beach/storm/storm-sites/thursday-island,http://www.bom.gov.au/ntc/IDO71067/IDO71067SLD.txt
