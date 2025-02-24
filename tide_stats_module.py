@@ -2,6 +2,7 @@
 This is just a common place for the main processing functions. They are placed here to 
 allow easier reuse and testing.
 """
+import stat
 import yaml
 import pathlib
 import xarray as xr
@@ -13,6 +14,7 @@ from datetime import datetime, timedelta
 import os
 import glob
 import rasterio
+import pandas as pd
 
 # -----------------------------------------------------------------------------
 # LOAD YAML CONFIGURATION
@@ -252,39 +254,131 @@ def compute_moon_phases(start, end):
     phases.sort(key=lambda x: x[1])  # Ensure phases are ordered by date
     return phases
 
-
-def compute_tidal_stats(time_series, tide_series, start_dt, end_dt):
+def compute_tidal_stats(time_series, tide_series, start_dt, end_dt, percentile_values: list[int]):
     """
-    LPT = min tide
-    HPT = max tide
-    MLWS = mean of min tide in (-12 hours to +4 days) window around new moon & full moon
-    MHWS = mean of max tide in (-12 hours to +4 days) window around new moon & full moon
-    """
-    lpt = np.min(tide_series)
-    hpt = np.max(tide_series)
+    Compute overall tidal stats (LPT, HPT, MLWS, MHWS), percentiles, and monthly stats.
+    
+    Parameters
+    ----------
+    time_series : pandas.DatetimeIndex
+        The timestamps corresponding to the tide_series.
+    tide_series : np.ndarray
+        Array of tide predictions.
+    start_dt : datetime
+        Start of the period for which tidal statistics are computed.
+    end_dt : datetime
+        End of the period for which tidal statistics are computed.
+    percentile_values : list of int
+        List of percentiles to compute.
 
+    Returns
+    -------
+    result : dict
+        Dictionary containing tidal statistics.
+    """
+    result = {}
+    # Overall stats
+    result['lpt'] = np.min(tide_series)
+    result['hpt'] = np.max(tide_series)
+    
     phases = compute_moon_phases(start_dt, end_dt)
     low_tides = []
     high_tides = []
-
     for phase, phase_time in phases:
-        # Time differences in seconds
         time_deltas = (time_series - phase_time).total_seconds()
-
-        # Apply the (-12 hours to +4 days) time window
         window_mask = (time_deltas >= -12 * 3600) & (time_deltas <= 4 * 86400)
         if window_mask.any():
             window_vals = tide_series[window_mask]
-
-            # Collect min and max tides within this window for both phases
             low_tides.append(np.min(window_vals))
             high_tides.append(np.max(window_vals))
+    result['mlws'] = np.mean(low_tides) if low_tides else np.nan
+    result['mhws'] = np.mean(high_tides) if high_tides else np.nan
 
-    # Compute MLWS and MHWS from the collected tide values
-    mlws = np.mean(low_tides) if len(low_tides) > 0 else np.nan
-    mhws = np.mean(high_tides) if len(high_tides) > 0 else np.nan
+    percentiles = {}
+    for p in percentile_values:
+        percentiles[f"p{p:02d}"] = np.percentile(tide_series, p)
+    result['percentiles'] = percentiles
 
-    return lpt, hpt, mlws, mhws
+    # Monthly stats
+    ts_index = pd.DatetimeIndex(time_series)
+    ts_series = pd.Series(tide_series, index=ts_index)
+    monthly_group = ts_series.groupby(ts_series.index.to_series().dt.month)
+    monthly_stats = monthly_group.agg(['min', 'mean', 'max'])
+    monthly_result = {}
+    for month in range(1, 13):
+        if month in monthly_stats.index:
+            row = monthly_stats.loc[month]
+            monthly_result[month] = {
+                'lpt': row['min'],
+                'mean': row['mean'],
+                'hpt': row['max']
+            }
+        else:
+            monthly_result[month] = {'lpt': np.nan, 'mean': np.nan, 'hpt': np.nan}
+    result['monthly'] = monthly_result
+
+    return result
+
+
+def dep_compute_tidal_stats(time_series, tide_series, start_dt, end_dt):
+    """
+    Compute overall tidal stats (LPT, HPT, MLWS, MHWS), percentiles, and monthly stats.
+    
+    Returns a dictionary with the following keys:
+      - 'lpt': lowest predicted tide (min value)
+      - 'hpt': highest predicted tide (max value)
+      - 'mlws': mean low water spring (derived from a window around new/full moons)
+      - 'mhws': mean high water spring (derived from a window around new/full moons)
+      - 'percentiles': dict of tide series percentiles with keys 'p01', 'p02', 'p05', 'p10',
+                       'p20', 'p50', 'p70', 'p90', 'p95', 'p98', 'p99'
+      - 'monthly': dict mapping month numbers (1-12) to a dict with keys 'lpt', 'mean', and 'hpt'
+    """
+    result = {}
+    # Overall stats
+    result['lpt'] = np.min(tide_series)
+    result['hpt'] = np.max(tide_series)
+    
+    phases = compute_moon_phases(start_dt, end_dt)
+    low_tides = []
+    high_tides = []
+    for phase, phase_time in phases:
+        time_deltas = (time_series - phase_time).total_seconds()
+        window_mask = (time_deltas >= -12 * 3600) & (time_deltas <= 4 * 86400)
+        if window_mask.any():
+            window_vals = tide_series[window_mask]
+            low_tides.append(np.min(window_vals))
+            high_tides.append(np.max(window_vals))
+    result['mlws'] = np.mean(low_tides) if low_tides else np.nan
+    result['mhws'] = np.mean(high_tides) if high_tides else np.nan
+
+    # Percentiles
+    perc_values = [1, 2, 5, 10, 20, 50, 70, 90, 95, 98, 99]
+    percentiles = {}
+    for p in perc_values:
+        percentiles[f"p{p:02d}"] = np.percentile(tide_series, p)
+    result['percentiles'] = percentiles
+
+    # Monthly stats
+    # Explicitly ensure the index is a DatetimeIndex
+    ts_index = pd.DatetimeIndex(time_series)
+    ts_series = pd.Series(tide_series, index=ts_index)
+    # Use the dt accessor on the index to group by month
+    monthly_group = ts_series.groupby(ts_series.index.to_series().dt.month)
+    monthly_stats = monthly_group.agg(['min', 'mean', 'max'])
+    monthly_result = {}
+    for month in range(1, 13):
+        if month in monthly_stats.index:
+            row = monthly_stats.loc[month]
+            monthly_result[month] = {
+                'lpt': row['min'],
+                'mean': row['mean'],
+                'hpt': row['max']
+            }
+        else:
+            monthly_result[month] = {'lpt': np.nan, 'mean': np.nan, 'hpt': np.nan}
+    result['monthly'] = monthly_result
+
+    return result
 
 def save_geotiff(file_path, data_array, profile, metadata):
     """
@@ -297,31 +391,160 @@ def save_geotiff(file_path, data_array, profile, metadata):
     - metadata (dict): Additional metadata tags to include in the file.
     """
     with rasterio.open(file_path, "w", **profile) as dst:
-        dst.write(data_array, 1)
+        # If the file is single-band, ensure we write a 2D array.
+        if profile.get("count", 1) == 1:
+            # If data_array is 3D with a singleton first dimension, squeeze it.
+            if data_array.ndim == 3 and data_array.shape[0] == 1:
+                data_array = data_array[0]
+            dst.write(data_array, 1)
+        else:
+            # For multi-band data, ensure data_array has shape (bands, height, width)
+            # Sometimes an extra dimension might sneak in (e.g. shape (1, bands, height, width))
+            if data_array.ndim == 4 and data_array.shape[0] == 1:
+                data_array = data_array[0]
+            dst.write(data_array)
         dst.update_tags(**metadata)
 
-def get_metadata_tags(config, software):
+
+def add_product_metadata(config: dict, product_type: str) -> dict:
     """
-    This function generates metadata suitable for the generated Geotiff files.
-    It pulls from the YAML configuration file to populate the metadata.
-    Parameters:
-    - config (dict): Dictionary containing configuration parameters.
-    - software (str): Name of the script used to generate the data.
+    Returns a copy of the base metadata updated with product-specific details
+    and CF-compliant fields.
     """
-    metadata_tags = {
+    # Helper to get ordinal suffix (e.g., 1 -> "1st", 2 -> "2nd", etc.)
+    def ordinal(n):
+        if 10 <= n % 100 <= 20:
+            suffix = 'th'
+        else:
+            suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+        return f"{n}{suffix}"
+    
+    base = {}
+    stat_desc = ""
+    stat_notes = ""
+    if product_type == "Percentiles":
+        # Use percentiles from config or a default list if not provided
+        percentile_values = config.get("percentiles")
+        band_descriptions = []
+        for i, p in enumerate(percentile_values):
+            label = f"p{p:02d}"
+            # Optionally, treat 50th percentile specially (as median)
+            if p == 50:
+                desc = f"{label} (median)"
+            else:
+                desc = f"{label} ({ordinal(p)} percentile)"
+            band_descriptions.append(f"Band {i+1}: {desc}")
+        base["bands_description"] = ", ".join(band_descriptions)
+        stat_desc = "Percentiles"
+        stat_notes = "Percentiles are calculated from the entire tide series."
+    elif product_type in ["Monthly_LPT", "Monthly_Mean", "Monthly_HPT"]:
+        stat_lookup = {"Monthly_LPT": "Lowest Predicted Tide - By month",
+                       "Monthly_Mean": "Mean Tide - By month",
+                       "Monthly_HPT": "Highest Predicted Tide  - By month"}
+        stat_desc = stat_lookup[product_type]
+        month_names = ["January", "February", "March", "April", "May", "June",
+                       "July", "August", "September", "October", "November", "December"]
+        base["bands_description"] = ", ".join(
+            [f"Band {i+1}: {month}" for i, month in enumerate(month_names)]
+        )
+        stat_note_lookup = {"Monthly_LPT": "Lowest tide value for each month, across all years in the simulation period.",
+                            "Monthly_Mean": "Mean tide value for each month, across all years in the simulation period.",
+                            "Monthly_HPT": "Highest predicted tide for each month, across all years in the simulation period."}
+        stat_notes = stat_note_lookup[product_type]
+    elif product_type in ["LPT", "HPT", "LAT", "HAT"]:
+        lat = product_type=='LPT' or product_type=='LAT'
+        base["bands_description"] = f"{'Lowest' if lat else 'Highest'} Predicted Tide"
+        stat_desc = base["bands_description"]
+        stat_notes = f"{stat_desc} is calculated as the overall {'minimum' if lat else 'maximum'} tide over the simulation period."
+    elif product_type in ["MLWS", "MHWS"]:
+        base["bands_description"] = f"Mean {'Low' if product_type=='MLWS' else 'High'} Water Spring"
+        stat_desc = base["bands_description"]
+        stat_notes = (f"{stat_desc} is computed by averaging the {'low' if product_type=='MLWS' else 'high'} tide values "
+                      "within a window 12 hours before to 4 days after new and full moon phases.")
+    extra = {
+        "Conventions": "CF-1.8",
+        "title": f"{stat_desc} - Tidal Statistics derived from EOT20",
+        "summary": ("This dataset contains tidal statistics (e.g., lowest/highest "
+                    "predicted tides, monthly statistics, and percentiles) derived from "
+                    "the EOT20 tide model. Tide predictions are computed over a user-specified "
+                    f"time period {config.get('start_date')} to {config.get('end_date')}."
+                    "This data is from the following dataset: Tidal Statistics for Australia "
+                    "Tidal range, LAT, HAT, MLWS, MHWS, Percentiles) derived from the EOT20 tidal model "
+                    "(NESP MaC 3.17, AIMS) (V1) [Data set]. eAtlas. https://doi.org/10.26274/z8b6-zx94."
+                    "The EOT20 model is a global Empirical Ocean Tide model described in "
+                    "Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, "
+                    "Schwatke Christian, Passaro Marcello, Seitz Florian (2021). "
+                    "EOT20 - A global Empirical Ocean Tide model from multi-mission satellite altimetry. "
+                    "SEANOE. https://doi.org/10.17882/79489"),
+        "author": config.get("author"),
+        "description": config.get("description"),
+        "processing": stat_notes,
+        "institution": config.get("organization", "Unknown Institution"),
+        "source": "EOT20 tide model (satellite altimetry) processed with pyTMD.",
+        "history": f"Generated on {datetime.now().isoformat()} using 03-tidal_stats.py from https://github.com/eatlas/AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats",
         "start_date": config.get("start_date"),
         "end_date": config.get("end_date"),
         "time_step_hours": config.get("time_step"),
-        "tide_model": "Hart-Davis Michael, Piccioni Gaia, Dettmering Denise, Schwatke Christian, Passaro Marcello, Seitz Florian (2021). EOT20 - A global Empirical Ocean Tide model from multi-mission satellite altimetry. SEANOE. https://doi.org/10.17882/79489",
-        "description": "Tidal statistics derived from EOT20 using pyTMD.",
-        "units": "metres",
-        "author": config.get("author"),
-        "organization": config.get("organization"),
-        "date_created": datetime.now().strftime("%Y-%m-%d"),
-        "software": software,
-        "reference": config.get("reference"),
+        "reference": config.get("reference", "No reference provided"),
         "metadata_link": config.get("metadata_link"),
         "license": config.get("license")
     }
-    return metadata_tags
+    
+    merged = base.copy()
+    merged.update(extra)
+    return merged
 
+
+def read_tide_gauge_data(filename):
+    """
+    Reads a tide gauge file and returns a DataFrame with the time series data.
+    
+    Each complete data row should have 8 columns:
+      Month, Year, Gaps, Good, Minimum, Maximum, Mean, StDevn
+    
+    Rows with missing sea level data (i.e., fewer than 8 tokens) are skipped.
+    """
+    data = []
+    with open(filename, 'r') as f:
+        for line in f:
+            line = line.strip()
+            # Skip blank lines
+            if not line:
+                continue
+
+            # Process only lines that start with a digit (data rows)
+            if line[0].isdigit():
+                tokens = line.split()
+                # Check if the row contains the full set of expected columns
+                if len(tokens) < 8:
+                    print(f"Incomplete data row detected, skipping: {line}")
+                    continue
+
+                try:
+                    month   = int(tokens[0])
+                    year    = int(tokens[1])
+                    gaps    = int(tokens[2])
+                    good    = int(tokens[3])
+                    minimum = float(tokens[4])
+                    maximum = float(tokens[5])
+                    mean    = float(tokens[6])
+                    stdev   = float(tokens[7])
+                except Exception as e:
+                    print(f"Error parsing line: {line}\n{e}")
+                    return None
+
+                data.append({
+                    'year': year,
+                    'month': month,
+                    'gaps': gaps,
+                    'good': good,
+                    'minimum': minimum,
+                    'maximum': maximum,
+                    'mean': mean,
+                    'stdev': stdev
+                })
+    
+    if not data:
+        return None  # No valid data found
+
+    return pd.DataFrame(data)

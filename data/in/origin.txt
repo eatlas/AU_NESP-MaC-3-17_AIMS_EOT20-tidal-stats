@@ -1,0 +1,10 @@
+This data was compiled from the Australian Baseline Sea Level Monitoring Project website. The URL for the Sea Level table for each ABSLMP Standard Station were recorded. The metadata for each station was recorded from the Tide Gauge Metadata and Observed Monthly Sea Levels and Statistics web page.
+
+Hourly data for these gauges is available from http://www.bom.gov.au/oceanography/projects/abslmp/data/
+
+General metadata is available for all tide gauge stations: http://www.bom.gov.au/oceanography/projects/abslmp/data/data.shtml
+
+BOM (n.d.) Australian Baseline Sea Level Monitoring Project Monthly Sea Level and Meteorological Statistics (http://www.bom.gov.au/oceanography/projects/abslmp/data/monthly.shtml) Accessed 17 Feb 2025.
+
+BOM (n.d.) Tide Gauge Metadata and Observed Monthly Sea Levels and Statistics
+http://www.bom.gov.au/oceanography/projects/ntc/monthly/ Accessed 17 Feb 2025

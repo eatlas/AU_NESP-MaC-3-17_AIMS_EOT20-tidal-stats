@@ -3,10 +3,12 @@ from data_downloader import DataDownloader
 import os
 import zipfile
 import csv
+import time
+from urllib.parse import urlparse
 
 
 # Create an instance of the DataDownloader class
-downloader = DataDownloader(download_path="in-data-3p")
+downloader = DataDownloader(download_path="data/in-3p")
 
 # --------------------------------------------------------
 # Function to unzip a file to a specified directory
@@ -70,12 +72,13 @@ print("All files are downloaded and prepared.")
 # --------------------------------------------------------
 # Tide Gauge Monthly Stats Data
 # Source: http://www.bom.gov.au/oceanography/projects/abslmp/data/monthly.shtml
+# http://www.bom.gov.au/oceanography/projects/ntc/monthly/
 
 # Path to the CSV file containing tide gauge data
-tide_gauges_csv = "in-data/ABSLMP_tide-gauges.csv"
+tide_gauges_csv = "data/in/BOM_tide-gauges.csv"
 
 # Define the destination folder for the tide gauge monthly stats
-tide_stats_folder = os.path.join(downloader.download_path, "AU_BOM_AMSLMP-monthly-tide-stats")
+tide_stats_folder = os.path.join(downloader.download_path, "AU_BOM_Monthly-tide-stats")
 os.makedirs(tide_stats_folder, exist_ok=True)
 
 # Open the CSV and iterate through each tide gauge entry
@@ -84,9 +87,21 @@ with open(tide_gauges_csv, newline='') as csvfile:
     for row in reader:
         monthly_stats_url = row["MonthlyStatsURL"]
         # Generate a filename using the tide gauge ID.
-        file_name = f"{row['ID']}.txt"
+        #file_name = f"{row['ID']}.txt"
+        # Extract the filename from the URL and replace its extension with .txt
+        parsed_url = urlparse(monthly_stats_url)
+        original_filename = os.path.basename(parsed_url.path)
+        file_name = os.path.splitext(original_filename)[0] + '.txt'
+
         destination_file = os.path.join(tide_stats_folder, file_name)
+
+        # Check if the file already exists
+        if os.path.exists(destination_file):
+            print(f"{destination_file} already exists. Skipping download...")
+            continue
         
         print(f"Downloading monthly tide stats for {row['StationName']} from {monthly_stats_url}...")
         downloader.download(monthly_stats_url, destination_file)
-        print(f"Downloaded {destination_file} successfully!")
+
+        # Pause for 2 seconds between downloads to avoid overloading the server.
+        time.sleep(1)

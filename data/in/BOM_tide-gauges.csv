@@ -1,0 +1,71 @@
+StationName,State,ABSLMP,ID,Latitude,Longitude,MetadataURL,MonthlyStatsURL
+Cape Ferguson,Queensland,TRUE,IDO71051SLD,-19.2774,147.0586,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59260.pdf,http://www.bom.gov.au/ntc/IDO71051/IDO71051SLD.txt
+Rosslyn Bay,Queensland,TRUE,IDO71052SLD,-23.161,150.7901,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59670.pdf,http://www.bom.gov.au/ntc/IDO71052/IDO71052SLD.txt
+Port Kembla,New South Wales,TRUE,IDO71053SLD,-34.4734,150.9118,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60420.pdf,http://www.bom.gov.au/ntc/IDO71053/IDO71053SLD.txt
+Burnie,Tasmania,TRUE,IDO71055SLD,-41.05,145.9149,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60910.pdf,http://www.bom.gov.au/ntc/IDO71055/IDO71055SLD.txt
+Spring Bay,Tasmania,TRUE,IDO71057SLD,-42.5464,147.9308,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61170.pdf,http://www.bom.gov.au/ntc/IDO71057/IDO71057SLD.txt
+Portland,Victoria,TRUE,IDO71058SLD,-38.3439,141.6136,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61410.pdf,http://www.bom.gov.au/ntc/IDO71058/IDO71058SLD.txt
+Port Stanvac,South Australia,TRUE,IDO71059SLD,-35.1085,138.4671,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61583.pdf,http://www.bom.gov.au/ntc/IDO71059/IDO71059SLD.txt
+Thevenard,South Australia,TRUE,IDO71060SLD,-32.149,133.6416,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62000.pdf,http://www.bom.gov.au/ntc/IDO71060/IDO71060SLD.txt
+Esperance,Western Australia,TRUE,IDO71061SLD,-33.8707,121.8971,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62080.pdf,http://www.bom.gov.au/ntc/IDO71061/IDO71061SLD.txt
+Hillarys,Western Australia,TRUE,IDO71062SLD,-31.8256,115.7386,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62237.pdf,http://www.bom.gov.au/ntc/IDO71062/IDO71062SLD.txt
+Broome,Western Australia,TRUE,IDO71063SLD,-18.0008,122.2183,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62650.pdf,http://www.bom.gov.au/ntc/IDO71063/IDO71063SLD.txt
+Darwin,Northern Territory,TRUE,IDO71064SLD,-12.4719,130.8458,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63230.pdf,http://www.bom.gov.au/ntc/IDO71064/IDO71064SLD.txt
+Milner Bay - Groote Eylandt,Northern Territory,TRUE,IDO71065SLD,-13.86,136.4158,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63511.pdf,http://www.bom.gov.au/ntc/IDO71065/IDO71065SLD.txt
+Cocos - Keeling Islands,(Home Island) Indian Ocean,TRUE,IDO71066SLD,-12.1168,96.8919,http://www.bom.gov.au/ntc/IDO50000/IDO50000_46280.pdf,http://www.bom.gov.au/ntc/IDO71066/IDO71066SLD.txt
+Thursday Island,"Torres Strait, Queensland",TRUE,IDO71067SLD,-10.5863,142.2215,https://www.qld.gov.au/environment/coasts-waterways/beach/storm/storm-sites/thursday-island,http://www.bom.gov.au/ntc/IDO71067/IDO71067SLD.txt
+Stony Point,Victoria,TRUE,IDO71054SLD,-38.3722,145.2247,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60710.pdf,http://www.bom.gov.au/ntc/IDO71054/IDO71054SLD.txt
+Lorne,Victoria,TRUE,IDO71056SLD,-38.5472,143.9889,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60790.pdf,http://www.bom.gov.au/ntc/IDO71056/IDO71056SLD.txt
+Botany Bay,New South Wales,FALSE,IDO70000_60390_SLD,-33.9679,151.2202389,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60390.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60390_SLD.txt
+Eden,New South Wales,FALSE,IDO70000_60530_SLD,-37.07366017,149.9077392,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60530.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60530_SLD.txt
+Lord Howe Island,New South Wales,FALSE,IDO70000_57720_SLD,-31.51666,159.06666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_57720.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_57720_SLD.txt
+Newcastle,New South Wales,FALSE,IDO70000_60310_SLD,-32.92383333,151.7889444,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60310.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60310_SLD.txt
+Norfolk Island,New South Wales,FALSE,IDO70000_57700_SLD,-29.06666,167.95,http://www.bom.gov.au/ntc/IDO50000/IDO50000_57700.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_57700_SLD.txt
+Port Kembla,New South Wales,FALSE,IDO70000_60420_SLD,-34.4734,150.9118,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60420.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60420_SLD.txt
+Fort Denison (Sydney),New South Wales,FALSE,IDO70000_60370_SLD,-33.85466667,151.2257778,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60370.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60370_SLD.txt
+Yamba,New South Wales,FALSE,,-29.42971186,153.3618755,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60130.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60130_SLD.txt
+Booby Island,Queensland,FALSE,,-10.60255,141.91013,http://www.bom.gov.au/ntc/IDO50000/IDO50000_58230.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_58230_SLD.txt
+Bowen,Queensland,FALSE,,-20.01667,148.25,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59320.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59320_SLD.txt
+Brisbane Bar,Queensland,FALSE,,-26.3666,153.1666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59980.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59980_SLD.txt
+Bundaberg (Burnett Heads),Queensland,FALSE,,-24.7666,152.38333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59820.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59820_SLD.txt
+Cairns,Queensland,FALSE,,-16.916666,145.78333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59060.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59060_SLD.txt
+Gladstone,Queensland,FALSE,,-23.83333,151.25,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59750.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59750_SLD.txt
+Gold Coast Operations Base,Queensland,FALSE,,-27.96666,153.43333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_6005a.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_6005a_SLD.txt
+Goods Island,Queensland,FALSE,,-10.561666,142.1516667,http://www.bom.gov.au/ntc/IDO50000/IDO50000_58200.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_58200_SLD.txt
+Hay Point,Queensland,FALSE,,-21.28333,149.3,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59511.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59511_SLD.txt
+Ince Point,Queensland,FALSE,,-10.508333,142.31,http://www.bom.gov.au/ntc/IDO50000/IDO50000_58140.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_58140_SLD.txt
+Karumba,Queensland,FALSE,,-17.5,140.83333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63580.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_63580_SLD.txt
+Lucinda (Offshore),Queensland,FALSE,,-18.516666,146.383333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59200.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59200_SLD.txt
+Mackay Outer Harbour,Queensland,FALSE,,-21.1,149.233333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59510.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59510_SLD.txt
+Mooloolaba,Queensland,FALSE,,-26.68333,153.13333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59950.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59950_SLD.txt
+Nardana Patches,Queensland,FALSE,,-10.50475,143.243817,http://www.bom.gov.au/ntc/IDO50000/IDO50000_58178.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_58178_SLD.txt
+Mourilyan Harbour,Queensland,FALSE,,-17.6,146.11666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59140.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59140_SLD.txt
+Port Alma,Queensland,FALSE,,-23.583333,150.866666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59690.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59690_SLD.txt
+Port Douglas,Queensland,FALSE,,-16.4833333,145.46666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59040.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59040_SLD.txt
+Shute Harbour,Queensland,FALSE,,-20.283333,148.783333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59410.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59410_SLD.txt
+Townsville,Queensland,FALSE,,-19.25,146.83333,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59250.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59250_SLD.txt
+Turtle Head,Queensland,FALSE,,-10.521666,142.2116666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_58180.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_58180_SLD.txt
+Urangan,Queensland,FALSE,,-25.3,152.916666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_59850.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_59850_SLD.txt
+Weipa (Humbug Point),Queensland,FALSE,,-12.66666,141.86666,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63620.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_63620_SLD.txt
+Albany,Western Australia,FALSE,,-35.03372222,117.8925556,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62120.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62120_SLD.txt
+Bunbury (Inner),Western Australia,FALSE,,-33.32344444,115.6599722,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62190.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62190_SLD.txt
+Cape Lambert,Western Australia,FALSE,,-20.58797222,117.1860278,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62550.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62550_SLD.txt
+Carnarvon,Western Australia,FALSE,,-24.89869444,113.6510278,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62370.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62370_SLD.txt
+Exmouth,Western Australia,FALSE,,-21.95486111,114.1408889,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62435.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62435_SLD.txt
+Fremantle,Western Australia,FALSE,,-32.05583,115.7395,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62230.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62230_SLD.txt
+Geraldton,Western Australia,FALSE,,-28.77597222,114.6018889,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62290.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62290_SLD.txt
+Hillarys,Western Australia,FALSE,,-31.8256,115.7386,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62237.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62237_SLD.txt
+King Bay,Western Australia,FALSE,,-20.62361111,116.7490556,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62540.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62540_SLD.txt
+Onslow,Western Australia,FALSE,,-21.64976944,115.1315556,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62470.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62470_SLD.txt
+Port Hedland,Western Australia,FALSE,,-20.31758333,118.5744167,http://www.bom.gov.au/ntc/IDO50000/IDO50000_62590.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_62590_SLD.txt
+Wyndham,Western Australia,FALSE,,-15.45327778,128.1010278,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63090.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_63090_SLD.txt
+Port Adelaide (Outer Harbor),South Australia,FALSE,,-34.77976111,138.4807278,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61600.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61600_SLD.txt
+Port Giles,South Australia,FALSE,,-35.02178056,137.7683194,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61685.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61685_SLD.txt
+Port Lincoln,South Australia,FALSE,,-34.71590278,135.8700111,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61900.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61900_SLD.txt
+Port Pirie,South Australia,FALSE,,-33.17764444,138.01165,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61800.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61800_SLD.txt
+Victor Harbor,South Australia,FALSE,,-35.56248056,138.6354028,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61490.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61490_SLD.txt
+Wallaroo,South Australia,FALSE,,-33.92601667,137.6151694,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61780.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61780_SLD.txt
+Whyalla,South Australia,FALSE,,-33.01278333,137.5903556,http://www.bom.gov.au/ntc/IDO50000/IDO50000_61840.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_61840_SLD.txt
+Low Head,Tasmania,FALSE,,-41.065075,146.7947389,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60948.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60948_SLD.txt
+Mersey River (Devonport),Tasmania,FALSE,,-41.18469167,146.3624306,http://www.bom.gov.au/ntc/IDO50000/IDO50000_60930.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_60930_SLD.txt
+Darwin,Northern Territory,FALSE,,-12.4719,130.8458,http://www.bom.gov.au/ntc/IDO50000/IDO50000_63230.pdf,http://www.bom.gov.au/ntc/IDO70000/IDO70000_63230_SLD.txt

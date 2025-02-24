@@ -1,0 +1,1 @@
+Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS, Percentiles) derived from the EOT20 tidal model (NESP MaC 3.17, AIMS) (V1) [Data set]. eAtlas. https://doi.org/10.26274/z8b6-zx94

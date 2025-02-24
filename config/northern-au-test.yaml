@@ -1,11 +1,11 @@
 # This is a longer test suitable for parallel testing. 
 # This test takes approximately 1 hr 20 mins on a single core.
-land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
+land_mask_path: "data/in-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [111, -27, 154, -9]
 grid_cell_size: 0.03125
 land_overlap_px: 2
 grid_path: "working/EOT20-nau-test/grid.tif"
-tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
+tide_model_path: "data/in-3p/World_EOT20_2021/ocean_tides"
 clipped_tide_model_path: "working/EOT20-nau-test/ocean_tides"
 clipping_buffer_deg: 0.25
 start_date: "2023-01-01"
@@ -19,5 +19,6 @@ author: "Eric Lawrey"
 organization: "Australian Institute of Marine Science"
 description: "Tidal statistics derived from EOT20 using pyTMD run over 1 year."
 reference: "This is only test data"
-metadata_link: ""
+metadata_link: "https://doi.org/10.26274/z8b6-zx94"
 license: "CC-BY 4.0"
+percentiles: [1, 2, 5, 10, 20, 50, 80, 90, 95, 98, 99]
