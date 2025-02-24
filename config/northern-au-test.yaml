@@ -1,5 +1,5 @@
 # This is a longer test suitable for parallel testing. 
-# This test takes approximately 1 hr 20 mins on a single core.
+# This test takes approximately 12 hours on 4 cores.
 land_mask_path: "data/in-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [111, -27, 154, -9]
 grid_cell_size: 0.03125
