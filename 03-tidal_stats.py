@@ -356,7 +356,6 @@ def main():
         profile_copy["count"] = cnt
         # Merge in product-specific metadata
         metadata_tags = tide_stats_module.add_product_metadata(config, product_type)
-        print(f"{metadata_tags=}")
         tide_stats_module.save_geotiff(file_path, arr_, profile_copy, metadata_tags)
 
     if args.split > 1:
