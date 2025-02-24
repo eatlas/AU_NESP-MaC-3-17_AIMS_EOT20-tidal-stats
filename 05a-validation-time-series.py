@@ -14,16 +14,16 @@ from tide_stats_module import predict_tide, load_eot20_constants, read_tide_gaug
 # Configuration and directories
 # ----------------------------
 # Path to the CSV file containing gauge details
-gauges_csv = "in-data/BOM_tide-gauges.csv"
+gauges_csv = "data/in/BOM_tide-gauges.csv"
 # Directory where the monthly gauge stats files are stored
-monthly_data_dir = "in-data-3p/AU_BOM_Monthly-tide-stats"
+monthly_data_dir = "data/in-3p/AU_BOM_Monthly-tide-stats"
 # Directory where output plots will be saved
-output_plots_dir = "public/validation/BOM-EOT20-monthly-time-series"
+output_plots_dir = "data/validation/BOM-EOT20-monthly-time-series"
 os.makedirs(output_plots_dir, exist_ok=True)
 
 # Directory containing the EOT20 NetCDF files for tide modelling.
 # (Make sure this directory contains the required *.nc files.)
-eot20_dir = "in-data-3p/World_EOT20_2021/ocean_tides" 
+eot20_dir = "data/in-3p/World_EOT20_2021/ocean_tides" 
 
 print("Loading EOT20 tide model constants...")
 eot20_consts = load_eot20_constants(eot20_dir)

@@ -50,13 +50,13 @@ def calc_monthly_stats(df, filter_gaps=False, gap_threshold=100, col_min="minimu
 # ----------------------------
 # Configuration and directories
 # ----------------------------
-gauges_csv = "in-data/BOM_tide-gauges.csv"
-monthly_data_dir = "in-data-3p/AU_BOM_Monthly-tide-stats"
-output_plots_dir = "public/validation/BOM-EOT20-tide-monthly-climatology"
+gauges_csv = "data/in/BOM_tide-gauges.csv"
+monthly_data_dir = "data/in-3p/AU_BOM_Monthly-tide-stats"
+output_plots_dir = "data/validation/BOM-EOT20-tide-monthly-climatology"
 os.makedirs(output_plots_dir, exist_ok=True)
 
 # Directory containing the EOT20 NetCDF files for tide modelling.
-eot20_dir = "in-data-3p/World_EOT20_2021/ocean_tides"
+eot20_dir = "data/in-3p/World_EOT20_2021/ocean_tides"
 
 print("Loading EOT20 tide model constants...")
 eot20_consts = load_eot20_constants(eot20_dir)
