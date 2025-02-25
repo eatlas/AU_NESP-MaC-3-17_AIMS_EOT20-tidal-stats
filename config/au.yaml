@@ -8,7 +8,7 @@ tide_model_path: "data/in-3p/World_EOT20_2021/ocean_tides"
 clipped_tide_model_path: "working/EOT20-au/ocean_tides"
 clipping_buffer_deg: 0.25
 start_date: "2005-01-01"
-end_date: "2024-12-01"
+end_date: "2024-12-31"
 time_step: 0.5
 working_path: "working/EOT20-au/tmp"
 lat_label: 'LAT'
