@@ -78,13 +78,14 @@ print(f"Model prediction period: {model_start.date()} to {model_end.date()}\n")
 
 # List to store RMS values for each station
 rms_records = []
+# List to accumulate merged climatology data from all stations
+all_merged_data = []
 
 # ----------------------------
 # Process each gauge station
 # ----------------------------
 for idx, row in gauges_df.iterrows():
     station_name = row['StationName']
-
     monthly_stats_url = row['MonthlyStatsURL']
     parsed_url = urlparse(monthly_stats_url)
     original_filename = os.path.basename(parsed_url.path)
@@ -138,7 +139,6 @@ for idx, row in gauges_df.iterrows():
         .sort_values("date")
     )
     monthly_model["month"] = monthly_model["date"].dt.month
-    # Note: monthly_model has columns "min", "mean", "max" which we map to the function parameters
 
     # Calculate model climatology (using the median on min, mean, max)
     model_clim = calc_monthly_stats(monthly_model, filter_gaps=False, col_min="min", col_mean="mean", col_max="max")
@@ -177,38 +177,63 @@ for idx, row in gauges_df.iterrows():
         "RMS_Max": rms_max
     })
 
+    # Append station details to merged climatology data for CSV export
+    merged["StationName"] = station_name
+    merged["StationID"] = station_id
+    merged["State"] = state
+    merged["Latitude"] = lat
+    merged["Longitude"] = lon
+    all_merged_data.append(merged)
+
     # ----------------------------
     # Create a comparison plot
     # ----------------------------
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # Create figure with twice the default DPI
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=200)
     
-    # Create month labels (e.g. Jan, Feb, …)
+    # Plot adjusted gauge climatology (solid lines with markers)
     months = np.arange(1, 13)
     month_labels = [datetime(2000, m, 1).strftime("%b") for m in months]
     
     # Plot adjusted gauge climatology (solid lines with markers)
-    ax.plot(months, gauge_clim_adj["median_min"], "o-", color="navy", label="Gauge Median Min (adj)")
-    ax.plot(months, gauge_clim_adj["median_mean"], "o-", color="darkgreen", label="Gauge Median Mean (adj)")
-    ax.plot(months, gauge_clim_adj["median_max"], "o-", color="darkred", label="Gauge Median Max (adj)")
-    
+    ax.plot(months, gauge_clim_adj["median_min"], "o-", color="#37b4fa", label="Gauge Median Min (adj)")
+    ax.plot(months, gauge_clim_adj["median_mean"], "o-", color="#077ae0", label="Gauge Median Mean (adj)")
+    ax.plot(months, gauge_clim_adj["median_max"], "o-", color="#205191", label="Gauge Median Max (adj)")
+
     # Plot model climatology (dashed lines with markers)
-    ax.plot(months, model_clim["median_min"], "s--", color="blue", label="Model Median Min")
-    ax.plot(months, model_clim["median_mean"], "s--", color="green", label="Model Median Mean")
-    ax.plot(months, model_clim["median_max"], "s--", color="red", label="Model Median Max")
+    ax.plot(months, model_clim["median_min"], "s--", color="#eb7705", label="Model Median Min")
+    ax.plot(months, model_clim["median_mean"], "s--", color="#cf4400", label="Model Median Mean")
+    ax.plot(months, model_clim["median_max"], "s--", color="#a10212", label="Model Median Max")
     
-    # Set plot title including offset and RMS errors
-    ax.set_title(
-        f"{station_name} (ID: {station_id}) - {state}\n"
-        f"Gauge Data: {gauge_data_start} to {gauge_data_end}\n"
-        f"Offset = {offset:.3f} m  |  RMS (m): min = {rms_min:.3f}, mean = {rms_mean:.3f}, max = {rms_max:.3f}"
+    # Set the main title as a suptitle (larger font)
+    fig.suptitle(f"Monthly Tidal Climatology for {station_name}, {state}",
+                 fontsize=14, y=0.98)
+    
+    # Create a subtitle (smaller font) that shows gauge data period and offset/RMS info.
+    subtitle_text = (
+        f"Tide Gauge vs EOT20 Tidal Model. Gauge Data: {gauge_data_start} to {gauge_data_end}, ID: {station_id}, GPS: ({lat}, {lon})\n" 
+        f"Tide Gauge Zero to EOT20 offset  = {offset:.3f} m  |  RMS (m): min = {rms_min:.3f}, mean = {rms_mean:.3f}, max = {rms_max:.3f}"
     )
+    ax.set_title(subtitle_text, fontsize=10)
+    
     ax.set_xlabel("Month")
-    ax.set_ylabel("Sea Level (m)")
+    # Updated vertical axis label
+    ax.set_ylabel("Sea Level (m) - MSL")
     ax.set_xticks(months)
     ax.set_xticklabels(month_labels)
     ax.grid(True)
     ax.legend()
-    fig.tight_layout()
+    
+    # Adjust layout to leave extra space at the bottom for attribution
+    fig.subplots_adjust(bottom=0.15)
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
+    
+    # Add footer text (attribution) with increased gap below the graph
+    fig.text(0.5, 0.01, (
+        "Derived from EOT20 Tidal Model and BOM Tide Gauge Data. Graph is licensed under CC BY 4.0\n"
+        "Processing: AIMS, https://doi.org/10.26274/z8b6-zx94, Tidal model EOT20: https://doi.org/10.17882/79489\n"
+        "Tide Gauge data: http://www.bom.gov.au/oceanography/projects/ntc/monthly/"),
+             ha="center", fontsize=8, color='grey')
     
     # Save the plot
     plot_filename = os.path.join(output_plots_dir, f"{station_id}_climatology.png")
@@ -221,5 +246,12 @@ rms_df = pd.DataFrame(rms_records)
 rms_output_csv = os.path.join(output_plots_dir, "EOT20-Tide-gauge-clim-diff-rms.csv")
 rms_df.to_csv(rms_output_csv, index=False)
 print(f"RMS values saved to {rms_output_csv}")
+
+# Save merged climatology data from all graphs to a CSV file
+if all_merged_data:
+    all_merged_df = pd.concat(all_merged_data, ignore_index=True)
+    merged_csv = os.path.join(output_plots_dir, "EOT20-Tide-gauge-clim-data.csv")
+    all_merged_df.to_csv(merged_csv, index=False)
+    print(f"Climatology data from all graphs saved to {merged_csv}")
 
 print("Processing complete.")

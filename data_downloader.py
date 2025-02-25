@@ -117,7 +117,7 @@ class DataDownloader:
             with urllib.request.urlopen(req) as response, open(tmp_path, 'wb') as out_file:
                 total_size = response.getheader('Content-Length')
                 total_size = int(total_size) if total_size is not None else -1
-                block_size = 8192  # 8 KB block size
+                block_size = 32768  # 32 KB block size
                 count = 0
                 self.start_time = time.time()
                 self.last_report_time = time.time()

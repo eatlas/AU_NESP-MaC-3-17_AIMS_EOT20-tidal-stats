@@ -1,9 +1,9 @@
 working
 __pycache__
-in-data-3p
 deprecated
 eot20_venv
 venv_*
 data/in-3p
 data/out
 data/preview
+data/validation

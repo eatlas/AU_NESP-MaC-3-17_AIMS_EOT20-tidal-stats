@@ -176,29 +176,47 @@ for idx, row in gauges_df.iterrows():
     # ------
     # Create a comparison plot
     # ------
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(10, 7), dpi = 200)
     # Plot gauge (adjusted) data with solid lines (no markers) in darker colors
-    ax.plot(merged["date"], merged["minimum_adj"], "-", label="Gauge Min (adj)", color="navy")
-    ax.plot(merged["date"], merged["mean_gauge_adj"], "-", label="Gauge Mean (adj)", color="darkgreen")
-    ax.plot(merged["date"], merged["maximum_adj"], "-", label="Gauge Max (adj)", color="darkred")
+    ax.plot(merged["date"], merged["minimum_adj"], "-", label="Gauge Min (adj)", color="#37b4fa")
+    ax.plot(merged["date"], merged["mean_gauge_adj"], "-", label="Gauge Mean (adj)", color="#077ae0")
+    ax.plot(merged["date"], merged["maximum_adj"], "-", label="Gauge Max (adj)", color="#205191")
 
     # Plot model predictions with dashed lines in standard (brighter) colors
-    ax.plot(merged["date"], merged["min"], "--", label="Model Min", color="blue")
-    ax.plot(merged["date"], merged["mean_model"], "--", label="Model Mean", color="green")
-    ax.plot(merged["date"], merged["max"], "--", label="Model Max", color="red")
+    ax.plot(merged["date"], merged["min"], "--", label="Model Min", color="#eb7705")
+    ax.plot(merged["date"], merged["mean_model"], "--", label="Model Mean", color="#cf4400")
+    ax.plot(merged["date"], merged["max"], "--", label="Model Max", color="#a10212")
 
     # Update the title with station name, state, GPS coordinates, and note that data are monthly aggregates
-    ax.set_title(
-        f"{station_name} (ID: {station_id}) - {state}\n"
-        f"GPS: ({lat}, {lon})\n"
-        f"Monthly Aggregates; Offset = {offset:.3f} m; RMS: min = {rms_min:.3f}, mean = {rms_mean:.3f}, max = {rms_max:.3f} m"
+    
+    # Set the main title as a suptitle (larger font)
+    fig.suptitle(f"Monthly Tidal Range Time Series for {station_name}, {state}",
+                 fontsize=14, y=0.98)
+                 
+    # Create a subtitle (smaller font) that shows gauge data period and offset/RMS info.
+    subtitle_text = (
+        f"Tide Gauge vs EOT20 Tidal Model, ID: {station_id}, GPS: ({lat}, {lon})\n" 
+        f"Tide Gauge Zero to EOT20 offset  = {offset:.3f} m  |  RMS (m): min = {rms_min:.3f}, mean = {rms_mean:.3f}, max = {rms_max:.3f}"
     )
+    ax.set_title(subtitle_text, fontsize=10)
+    
     ax.set_xlabel("Date")
-    ax.set_ylabel("Sea Level (m)")
+    ax.set_ylabel("Sea Level (m) - EOT20 MSL")
     ax.legend()
+    # Adjust layout to leave extra space at the bottom for attribution
+    #fig.subplots_adjust(bottom=0.5)
+    plt.tight_layout(rect=[0, 0.08, 1, 1])
+    
+    # Add footer text (attribution) with increased gap below the graph
+    fig.text(0.5, 0.01, (
+        "Derived from EOT20 Tidal Model and BOM Tide Gauge Data. Graph is licensed under CC BY 4.0\n"
+        "Processing: AIMS, https://doi.org/10.26274/z8b6-zx94, Tidal model EOT20: https://doi.org/10.17882/79489\n"
+        "Tide Gauge data: http://www.bom.gov.au/oceanography/projects/ntc/monthly/"),
+             ha="center", fontsize=8, color='grey')
+             
     ax.grid(True)
     plt.xticks(rotation=45)
-    fig.tight_layout()
+    
 
     # Save the plot
     plot_filename = os.path.join(output_plots_dir, f"{station_id}_comparison.png")
