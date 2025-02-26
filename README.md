@@ -140,10 +140,18 @@ Once you have an operating setup with all the libraries installed your first run
 
     These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images properly because the data in the files is in 32 bit float.
 
-## Parallel test run
-This run is much larger than the quick test run as it simulated northern Australia over a 1 year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example we have split the number of parallel runs into 4 so that it can be run locally on a laptop for testing purposes. 
+To split the processing on windows without opening multiple command line windows you can use the `start /b` to start multiple background tasks. 
+```batch
+start /b python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 0
+start /b python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 1
+```
+
+## Larger parallel test run
+This run is much larger than the quick test run as it simulated northern Australia over a 1 year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example we have split the number of parallel runs into 4 so that it can be run locally on a laptop for testing purposes. This test take approximately 12 hours when split into 4 processes.
 
 Parallelism is achieved by splitting the task into multiple independed runs of the `03-tidal_stats.py` script that each process an independent strip of the final grid. The results are then merged together using the `04-merge_strips.py`. To split the processing we indicate to the script how many vertical strips the grid should be `split` and then provide each process with an `index` to indicate which portion it should process.
+
+Note that because the tidal model is not simulated for land areas not all parallel splits will take the same amount of time. This is a result of the simple approach used for splitting up the work.
 
 Setup the Grid:
 ```bash
@@ -166,6 +174,33 @@ Merge the results:
 ```bash
 python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
 ```
+
+# Reproducing the final Australian EOT20 Tidal Stats dataset
+The published tidal statistics involves simulating over a wide area over a full 19 years to ensure that LAT and HAT estimates are as accurate as possible. For this reason the processing takes a long time. It is therefore recommended that recalculating 
+
+Setup the Grid:
+```bash
+python 02-tide_model_grid.py --config config/au.yaml
+```
+
+Calculate the stats across multiple processes. On a HPC the processing should be split into multiple processes using the `split` and `index` parameters using SLURM to coordinate the process.
+
+NOTE: TODO - Add details for getting this script to run on HPC
+
+On Windows the processing can be split to run as multiple background tasks in the same command line using `start`.
+
+Each process for the au.yaml configuration uses approximately 400 - 600 MB of RAM.
+
+```batch
+start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 0
+start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 1
+start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 2
+start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 3
+```
+
+
+# Resuming 03-tidal_stats processing
+The processing supports restarting the processing. The script progressively saves the results and so restarting the script will pick up from where the processing previously finished. This means if you have a previous run and you which to recalculate from scratch, because maybe you changed the configuration parameters, then the `working_path` folder should be cleared out. If you delete all of the `working_path` folder then you will need to rerun `02-tide-_model_grid.py` to regenerate the grid file and the cropped EOT20 model. 
 
 # Script descriptions
 The overall goal of the workflow is to generate high-resolution tidal datasets for Australian coastal and intertidal zones using the EOT20 global tidal model. The process is broken down into four modular scripts that each play a specific role in the workflow:
@@ -254,27 +289,64 @@ The configuration file is written in YAML and contains all the parameters needed
   _Type_: String
   _Description_: Label to used for the estimate of the Highest Astronomical Tide (HAT) estimate. For a proper estimate of HAT a simulation of least 19 years is needed to cover the full lunar nodal cycle. In this case used 'HAT'. For shorter simulations a different name could be used such as 'HPT' for Highest Predicted Tide. This label is used in the naming of the generated files to represent the statistic generated.
 
+- **output_path_prefix** 
+  _Type_: String
+  _Description_: Path for where to store the final datasets from 04-merge_strips. Example:"data/out/AU_AIMS_EOT20-tide-stats_"
 
+- **author** 
+  _Type_: String
+  _Description_: Author of the dataset. This field is added as metadata to the GeoTiff images generated.
+
+- **organization** 
+  _Type_: String
+  _Description_: Organisation of who made the dataset. This field is added as metadata to the GeoTiff images generated.
+
+- **description** 
+  _Type_: String
+  _Description_: General description of the dataset. This field is added as metadata to the GeoTiff images generated.
+
+- **reference** 
+  _Type_: String
+  _Description_: Citation reference for this data file. This field is added as metadata to the GeoTiff images generated.
+
+- **metadata_link** 
+  _Type_: String
+  _Description_: Link to where the metadata for this data file is available. This field is added as metadata to the GeoTiff images generated. 
+
+- **license** 
+  _Type_: String
+  _Description_: License of the generated data file. For example: "CC-BY 4.0"
+
+- **percentiles:** 
+  _Type_: Array of percentiles
+  _Description_: List of percentiles to calculate. These correspond to time percentiles of the simulated tide time series. For example: [1, 2, 5, 10, 20, 50, 80, 90, 95, 98, 99]
 
 A sample configuration file (config.yaml) might look like this:
 
 ```yaml
-region_name: "King Sound"
-land_mask_path: "in-data-3p/ne_10m_land/ne_10m_land.shp"
+# This is a configuration for quickly testing the scripts as it only takes a few minutes to simulate.
+land_mask_path: "data/in-3p/ne_10m_land/ne_10m_land.shp"
 grid_bbox: [122, -18, 124, -16]
-grid_cell_size: 0.125
+grid_cell_size: 0.0625
 land_overlap_px: 2
 grid_path: "working/EOT20-king-sound/grid.tif"
-tide_model_path: "in-data-3p/World_EOT20_2021/ocean_tides"
+tide_model_path: "data/in-3p/World_EOT20_2021/ocean_tides"
 clipped_tide_model_path: "working/EOT20-king-sound/ocean_tides"
 clipping_buffer_deg: 0.125
 start_date: "2024-01-01"
-end_date: "2024-01-31"
+end_date: "2024-12-31"
 time_step: 1
 working_path: "working/EOT20-king-sound/tmp"
 lat_label: 'LPT'
 hat_label: 'HPT'
 output_path_prefix: "working/EOT20-king-sound/"
+author: "Eric Lawrey"
+organization: "Australian Institute of Marine Science"
+description: "Tidal statistics derived from EOT20 using pyTMD."
+reference: "This is only test data"
+metadata_link: ""
+license: "CC-BY 4.0"
+percentiles: [1, 2, 5, 10, 20, 50, 80, 90, 95, 98, 99]
 ```
 
 Using a YAML configuration file in this manner improves reproducibility by keeping all model-run parameters in one place. Subsequent scripts in your workflow can simply load the same YAML file to ensure consistency across the entire processing chain.

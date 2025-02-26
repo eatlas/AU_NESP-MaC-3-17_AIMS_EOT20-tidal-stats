@@ -105,6 +105,7 @@ def main():
     working_path = config.get("working_path")
     lat_label = config.get("lat_label")
     hat_label = config.get("hat_label")
+    index = args.index
 
     log_file = f"{working_path}/tidal_stats_{args.index}.log"
     if not os.path.exists(working_path):
@@ -117,14 +118,14 @@ def main():
         force=True
     )
     logging.info("Script started.")
-    print(f"Logging to {log_file}")
-    print("Started script with the following configuration:")
-    tide_stats_module.print_config(config)
+    print(f"Index {index} - Logging to {log_file}")
+    # print("Started script with the following configuration:")
+    # tide_stats_module.print_config(config)
 
     # Read time series and check if all months are covered
     start_dt = datetime.strptime(start_date, "%Y-%m-%d")
     end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-    times = pd.date_range(start=start_dt, end=end_dt, freq=f"{time_step}H")
+    times = pd.date_range(start=start_dt, end=end_dt, freq=f"{time_step}h")
     all_months = set(range(1, 13))
     simulated_months = set(times.month)
 
@@ -149,18 +150,25 @@ def main():
         crs = src.crs
 
     # Determine columns for this slice
-    split = args.split
-    index = args.index
-    cols_per_slice = width // split
-    extra = width % split
-    start_col = index * cols_per_slice
-    if index == (split - 1):
-        end_col = width
-    else:
-        end_col = start_col + cols_per_slice
+    # split = args.split
+    # index = args.index
+    # cols_per_slice = width // split
+    # extra = width % split
+    # start_col = index * cols_per_slice
+    # if index == (split - 1):
+    #     end_col = width
+    # else:
+    #     end_col = start_col + cols_per_slice
+    # slice_width = end_col - start_col
+    # ---- New integration: Determine column splits based on active pixels ----
+    splits = tide_stats_module.split_grid_columns_by_active_pixels(
+        grid, args.split)
+    if index < 0 or index >= len(splits):
+        raise ValueError(f"Invalid index {index}. It must be in the range 0 to {len(splits)-1}")
+    start_col, end_col = splits[index]
     slice_width = end_col - start_col
-    from affine import Affine
-    slice_transform = transform * Affine.translation(start_col, 0)
+    print(f"Process {index} will handle columns {start_col} to {end_col} (width {slice_width}).")
+    logging.info(f"Process {index} assigned columns {start_col} to {end_col} based on active pixel counts.")
 
     # Prepare empty arrays for original stats
     lpt_arr = np.full((height, slice_width), np.nan, dtype=np.float32)
@@ -177,6 +185,9 @@ def main():
     monthly_lpt_arr = np.full((12, height, slice_width), np.nan, dtype=np.float32)
     monthly_mean_arr = np.full((12, height, slice_width), np.nan, dtype=np.float32)
     monthly_hpt_arr = np.full((12, height, slice_width), np.nan, dtype=np.float32)
+
+    from affine import Affine
+    slice_transform = transform * Affine.translation(start_col, 0)
 
     profile = {
         "driver": "GTiff",
@@ -210,7 +221,7 @@ def main():
         [lpt_arr, hpt_arr, mlws_arr, mhws_arr, percentiles_arr, monthly_lpt_arr, monthly_mean_arr, monthly_hpt_arr]
     ):
         if os.path.exists(fname):
-            msg = f"Resuming from existing file: {fname}"
+            msg = f"Index {index} - Resuming from existing file: {fname}"
             logging.info(msg)
             print(msg)
             with rasterio.open(fname) as src:
@@ -229,7 +240,7 @@ def main():
                 if np.isnan(lpt_arr[row, col - start_col]):
                     process_indices.append((row, col))
     total = len(process_indices)
-    msg = f"Processing {total} grid cells in slice {index} (cols={start_col}:{end_col})"
+    msg = f"Index {index} - Processing {total} grid cells in slice {index} (cols={start_col}:{end_col})"
     logging.info(msg)
     print(msg)
 
@@ -238,7 +249,7 @@ def main():
 
     for count, (row, col) in enumerate(process_indices, start=1):
         if stop_processing:
-            logging.info("Graceful shutdown initiated...")
+            logging.info(f"Index {index} - Graceful shutdown initiated...")
             break
         lon, lat = xy(transform, row, col, offset="center")
         tide_series = tide_stats_module.predict_tide(lat, lon, times, eot20_consts)
@@ -312,7 +323,7 @@ def main():
                 m = int((sec % 3600) // 60)
                 s = int(sec % 60)
                 return f"{h:02d}:{m:02d}:{s:02d}"
-            msg_progress = (f"Processed {count}/{total} pixels, "
+            msg_progress = (f"Index {index} - Processed {count}/{total} pixels, "
                             f"elapsed={format_hms(elapsed_seconds)}, "
                             f"remaining≈{format_hms(remaining_seconds)}")
             print(msg_progress)
@@ -370,7 +381,7 @@ def main():
         logging.warning("Reprinted warning at the end: " + missing_months_warning)
 
     logging.shutdown()
-    print("Exiting program safely.")
+    print(f"Index {index} - Exiting program safely.")
     sys.exit(0)
 
 

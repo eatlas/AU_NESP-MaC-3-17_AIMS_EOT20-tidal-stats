@@ -132,7 +132,7 @@ def load_eot20_constants(base_path):
             f"  {base_path}"
         )
 
-    print("Reading in consts")
+    
     # read_constants loads amplitude/phase for each constituent
     eot20_consts = pyTMD.io.FES.read_constants(
         model_files=model_files,
@@ -141,9 +141,64 @@ def load_eot20_constants(base_path):
         compressed=False    # set True if they are .gz
     )
     
-    print(eot20_consts)
+    
     return eot20_consts
 
+def split_grid_columns_by_active_pixels(grid, num_splits):
+    """
+    Split the grid into approximately equal vertical strips based on active pixel counts.
+    
+    Parameters:
+        grid (numpy.ndarray): A 2D array where active (tide modelling) pixels are marked with 1
+                              and inactive pixels with 0.
+        num_splits (int): The number of vertical splits (processes) desired.
+    
+    Returns:
+        List[Tuple[int, int]]: A list of (start_col, end_col) indices for each vertical strip.
+    
+    The function calculates the total active pixels, computes an ideal number of pixels per split,
+    and then iterates over each column summing the active pixels until the ideal is reached. The
+    remaining columns after allocating num_splits-1 splits are assigned to the final split.
+    """
+    if num_splits < 1:
+        raise ValueError("num_splits must be at least 1")
+    
+    height, width = grid.shape
+    # Count active pixels in each column (assuming active pixels are marked with 1)
+    active_counts = np.sum(grid == 1, axis=0)
+    total_active = np.sum(active_counts)
+    
+    # If no active pixels, fall back to equal column splits
+    if total_active == 0:
+        cols_per_split = width // num_splits
+        splits = []
+        for i in range(num_splits):
+            start = i * cols_per_split
+            end = (i + 1) * cols_per_split if i < num_splits - 1 else width
+            splits.append((start, end))
+        return splits
+    
+    ideal_pixels_per_split = total_active / num_splits
+    
+    splits = []
+    current_sum = 0
+    start_col = 0
+    current_split = 0
+    
+    for col in range(width):
+        current_sum += active_counts[col]
+        # Create a new split if the current sum meets or exceeds the ideal,
+        # but leave the final split to take the remainder.
+        if current_sum >= ideal_pixels_per_split and current_split < num_splits - 1:
+            end_col = col + 1  # end index is exclusive
+            splits.append((start_col, end_col))
+            start_col = end_col  # start next split from the next column
+            current_sum = 0
+            current_split += 1
+    
+    # The remaining columns form the last split
+    splits.append((start_col, width))
+    return splits
 
 # -----------------------------------------------------------------------------
 # TIDE-PREDICTION FUNCTION
