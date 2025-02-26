@@ -31,14 +31,6 @@ def main():
         help="Path to the YAML configuration file containing model run parameters."
     )
 
-    parser.add_argument(
-        "--split",
-        type=int,
-        required=False,
-        default=1,
-        help="Number of vertical slices that were produced",
-    )
-
     args = parser.parse_args()
 
     # List of required configuration parameters.
@@ -93,40 +85,41 @@ def main():
 
     # Generate a GeoTiff for each statistic.
     for stat in stats:
-        file_list = []
-        # For each slice, look for a file matching the expected pattern.
-        for i in range(args.split):
-            pattern = f"{stat}_{sim_years}_strip_{i}.tif"
-            full_pattern = os.path.join(working_path, pattern)
-            matches = glob.glob(full_pattern)
-            if not matches:
-                raise FileNotFoundError(f"Could not find file for {stat} slice {i} using pattern: {full_pattern}")
-            file_list.append(matches[0])
+        # Create a glob pattern to find all matching strips
+        pattern = os.path.join(working_path, f"{stat}_{sim_years}_strip_*.tif")
+        file_list = glob.glob(pattern)
+        if not file_list:
+            raise FileNotFoundError(f"No files found for {stat} with pattern: {pattern}")
+        
+        # Sort the file list based on the numeric value in the filename.
+        def extract_strip_num(filename):
+            try:
+                # Assumes filename format ends with '_strip_{number}.tif'
+                return int(filename.split('_strip_')[-1].split('.tif')[0])
+            except ValueError:
+                return -1  # In case of unexpected filename format
+        
+        file_list = sorted(file_list, key=extract_strip_num)
         print(f"Merging {len(file_list)} files for {stat}...")
-
+        
+        # Continue with the merging process as before...
         output_file = f"{output_path_prefix}{stat}_{sim_years}.tif"
-        # If only one slice exists, simply copy the file.
         if len(file_list) == 1:
             single_file = file_list[0]
             print(f"Only one slice found for {stat}, copying {single_file} to {output_file}")
             with rasterio.open(single_file) as src:
                 data = src.read()
                 profile = src.profile.copy()
-            # For multi-band products (e.g. Percentiles), preserve all bands.
             tide_stats_module.save_geotiff(output_file, data if data.ndim == 3 else data[0], profile, metadata_tags)
         else:
-            # Open each file and add to a list for merging.
             src_files = [rasterio.open(f) for f in file_list]
-            # Print details of each source file.
             for idx, src in enumerate(src_files):
                 print(f"Source File {idx+1}: {file_list[idx]}")
                 print(f"  Width: {src.width}, Height: {src.height}")
                 print(f"  Bounding Box: {src.bounds}")
                 print(f"  CRS: {src.crs}")
-            # Merge using the "first" method.
             mosaic, out_trans = merge(src_files, method="first")
             profile = src_files[0].profile.copy()
-            # Determine expected band count based on product type
             if stat == "Percentiles":
                 band_count = num_percentile_bands
             elif stat in ["Monthly_LPT", "Monthly_Mean", "Monthly_HPT"]:
@@ -141,15 +134,47 @@ def main():
                 "count": band_count
             })
             metadata_tags = tide_stats_module.add_product_metadata(config, stat)
-            # Write out all bands for multi-band products.
             if band_count > 1:
                 tide_stats_module.save_geotiff(output_file, mosaic, profile, metadata_tags)
             else:
                 tide_stats_module.save_geotiff(output_file, mosaic[0], profile, metadata_tags)
-
             for src in src_files:
                 src.close()
         print(f"Merged {stat} saved to {output_file}")
+
+
+    # Generate derivative tidal range dataset (HPT - LPT)
+    print("Generating derivative tidal range dataset (HPT - LPT)...")
+    # Construct the file names for the high-tide and low-tide merged files.
+    hpt_file = f"{output_path_prefix}{hat_label}_{sim_years}.tif"
+    lpt_file = f"{output_path_prefix}{lat_label}_{sim_years}.tif"
+    range_file = f"{output_path_prefix}Tidal_Range_{sim_years}.tif"
+
+    print(f"High-tide file: {hpt_file}")
+    print(f"Low-tide file: {lpt_file}") 
+
+    # Open the high-tide and low-tide files and compute the tidal range.
+    with rasterio.open(hpt_file) as hsrc, rasterio.open(lpt_file) as lsrc:
+        hpt_data = hsrc.read(1)  # Assumes single-band datasets
+        lpt_data = lsrc.read(1)
+        # Print out the size of the hpt and lpt datasets
+        print(f"High-tide dataset shape: {hpt_data.shape}") 
+        print(f"Low-tide dataset shape: {lpt_data.shape}")
+
+        tidal_range = hpt_data - lpt_data
+        # Copy the profile from one of the inputs and update as needed.
+        profile = hsrc.profile.copy()
+        profile.update({
+            "dtype": tidal_range.dtype,
+            "count": 1,
+            "compress": "lzw"
+        })
+
+    # Add metadata for the derivative product.
+    metadata_tags = tide_stats_module.add_product_metadata(config, "Tidal_Range")
+    # Save the new derivative GeoTIFF.
+    tide_stats_module.save_geotiff(range_file, tidal_range, profile, metadata_tags)
+    print(f"Tidal range dataset saved to {range_file}")
 
 if __name__ == "__main__":
     main()

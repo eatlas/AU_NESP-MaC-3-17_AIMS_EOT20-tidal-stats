@@ -516,6 +516,10 @@ def add_product_metadata(config: dict, product_type: str) -> dict:
         stat_desc = base["bands_description"]
         stat_notes = (f"{stat_desc} is computed by averaging the {'low' if product_type=='MLWS' else 'high'} tide values "
                       "within a window 12 hours before to 4 days after new and full moon phases.")
+    elif product_type == "Tidal_Range":
+        base["bands_description"] = "Tidal Range (HPT - LPT)"
+        stat_desc = "Tidal Range"
+        stat_notes = "Tidal Range is calculated as the difference between the Highest Predicted Tide and Lowest Predicted Tide."
     extra = {
         "Conventions": "CF-1.8",
         "title": f"{stat_desc} - Tidal Statistics derived from EOT20",
