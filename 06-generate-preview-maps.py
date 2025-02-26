@@ -7,6 +7,9 @@ parameters, then generates preview maps for tidal statistics products.
 
 This script is not complete and is just a draft. The maps need to be extended to 
 provide far more metadata on them and the map styling improved.
+
+This version of the code has a bug that the colour ramp is displayed as continuous
+when it should be discrete for better readibility of the plots. 
 ...
 """
 
@@ -17,6 +20,7 @@ import numpy as np
 import rasterio
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+from matplotlib import colormaps
 import imageio
 from datetime import datetime
 import yaml
@@ -103,20 +107,21 @@ def overlay_land(ax, land_mask_gdf):
 # -------------------------------------------------------------------------
 # Define colour ramps
 
-pos_colors = ['#fffdfc', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a',
-              '#ef3b2c', '#cb181d', '#940d38', '#5b002d']
-neg_colors = ['#081f6b', '#083e9c', '#2163b5', '#4286c6', '#6babd6',
-              '#9ecae1', '#c6e4ef', '#def2f7', '#f7feff']
-diverging_colors = neg_colors[1:] + ['#ffffff'] + pos_colors[1:]
+#pos_colors = ['#fffdfc', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a',
+#              '#ef3b2c', '#cb181d', '#940d38', '#5b002d']
+#neg_colors = ['#081f6b', '#083e9c', '#2163b5', '#4286c6', '#6babd6',
+#              '#9ecae1', '#c6e4ef', '#def2f7', '#f7feff']
+#diverging_colors = neg_colors[1:] + ['#ffffff'] + pos_colors[1:]
+diverging_colors = ['#040480', '#2d89bd', '#92d6de', '#f7f7f7', '#f4a07b', '#d7353f', '#750040']
 
-pos_cmap = LinearSegmentedColormap.from_list("pos_cmap", pos_colors)
-neg_cmap = LinearSegmentedColormap.from_list("neg_cmap", neg_colors)
+#pos_cmap = LinearSegmentedColormap.from_list("pos_cmap", pos_colors)
+#neg_cmap = LinearSegmentedColormap.from_list("neg_cmap", neg_colors)
 diverging_cmap = LinearSegmentedColormap.from_list("diverging_cmap", diverging_colors)
 
 # -------------------------------------------------------------------------
 # Plot Generation Functions
 
-def generate_single_map(file_path, title, cmap, symmetric, preview_dir, config, land_mask_gdf):
+def generate_single_map(file_path, file_prefix, title, subtitle, cmap, ax_min, ax_max, scale_label, preview_dir, config, land_mask_gdf):
     data, bounds, raster_crs = load_raster_data(file_path)
     if data is None:
         print(f"File for {title} not found: {file_path}")
@@ -127,29 +132,28 @@ def generate_single_map(file_path, title, cmap, symmetric, preview_dir, config, 
     land_mask_local = clip_land_mask(land_mask_local, bounds)
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    if symmetric:
-        max_abs = np.nanmax(np.abs(data))
-        norm = TwoSlopeNorm(vmin=-max_abs, vcenter=0, vmax=max_abs)
-    else:
-        norm = None
-
+    norm = plt.Normalize(vmin=ax_min, vmax=ax_max)  # Set explicit scale for colorbar
+    discrete_cmap = plt.get_cmap(cmap, 20)
     im = ax.imshow(
         data,
-        cmap=cmap,
+        cmap=discrete_cmap,
         norm=norm,
         extent=(left, right, bottom, top),
         origin='upper'
     )
     overlay_land(ax, land_mask_local)
-    ax.set_title(f"{title} Preview Map")
+    #ax.set_title(f"{title}")
+    fig.suptitle(title, fontsize=14, y=0.98)
+    ax.set_title(subtitle, fontsize=10)
+
     # Adjust colorbar: shrink it and add units label.
-    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, shrink=0.5)
-    cbar.set_label("m - MSL EOT20")
+    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, shrink=0.7)
+    cbar.set_label(scale_label)
     ax.set_aspect('equal')
     ax.axis("on")
     add_attribution(fig, config)
     
-    output_file = os.path.join(preview_dir, f"{title}_map.png")
+    output_file = os.path.join(preview_dir, f"{file_prefix}_map.png")
     plt.savefig(output_file, dpi=300)
     plt.close()
     print(f"Saved {output_file}")
@@ -167,9 +171,9 @@ def generate_percentiles_panel(file_path, preview_dir, config, land_mask_gdf, pe
     
     num_bands = data.shape[0]
     # Force layout: 3 columns by 4 rows.
-    ncols = 3
-    nrows = 4
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4*ncols, 4*nrows))
+    ncols = 2
+    nrows = 6
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4*ncols, 2.5*nrows))
     axes = np.atleast_2d(axes)
     
     abs_max = np.nanmax(np.abs(data))
@@ -190,6 +194,7 @@ def generate_percentiles_panel(file_path, preview_dir, config, land_mask_gdf, pe
             # Use the corresponding percentile label for the title.
             ax.set_title(f"Percentile {percentile_labels[i]}")
             cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, shrink=0.5)
+            
             cbar.set_label("m - MSL EOT20")
             overlay_land(ax, land_mask_local)
             ax.set_aspect('equal')
@@ -205,7 +210,7 @@ def generate_percentiles_panel(file_path, preview_dir, config, land_mask_gdf, pe
     plt.close()
     print(f"Saved {output_file}")
 
-def generate_monthly_maps(file_path, statistic, cmap, symmetric, preview_dir, config, land_mask_gdf, month_names):
+def generate_monthly_maps(file_path, statistic, title, cmap, ax_min, ax_max, preview_dir, config, land_mask_gdf, month_names):
     data, bounds, raster_crs = load_raster_data(file_path, all_bands=True)
     if data is None:
         print(f"File for {statistic} not found: {file_path}")
@@ -214,22 +219,18 @@ def generate_monthly_maps(file_path, statistic, cmap, symmetric, preview_dir, co
     land_mask_local = reproject_land_mask(land_mask_gdf, raster_crs)
     # Crop the land mask to the raster's spatial extent
     land_mask_local = clip_land_mask(land_mask_local, bounds)
-    
+    discrete_cmap = plt.get_cmap(cmap, 20)
     frames = []
     # Loop over each of the 12 bands (months)
     for month in range(12):
         month_data = data[month, :, :]
         fig, ax = plt.subplots(figsize=(12, 6))
         
-        if symmetric:
-            max_abs = np.nanmax(np.abs(month_data))
-            norm = TwoSlopeNorm(vmin=-max_abs, vcenter=0, vmax=max_abs)
-        else:
-            norm = None
+        norm = plt.Normalize(vmin=ax_min, vmax=ax_max)  # Set explicit scale for colorbar
         
         im = ax.imshow(
             month_data,
-            cmap=cmap,
+            cmap=discrete_cmap,
             norm=norm,
             extent=(left, right, bottom, top),
             origin='upper'
@@ -237,9 +238,9 @@ def generate_monthly_maps(file_path, statistic, cmap, symmetric, preview_dir, co
         overlay_land(ax, land_mask_local)
         # Use full month name for title.
         month_name = month_names[month]
-        ax.set_title(f"{statistic} - {month_name}")
-        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, shrink=0.5)
-        cbar.set_label("m - MSL EOT20")
+        ax.set_title(f"{title} - {month_name}")
+        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, shrink=0.8)
+        cbar.set_label("m - Relative to EOT20 MSL")
         ax.set_aspect('equal')
         ax.axis("on")
         add_attribution(fig, config)
@@ -256,7 +257,7 @@ def generate_monthly_maps(file_path, statistic, cmap, symmetric, preview_dir, co
         print(f"Saved {png_filename}")
     
     gif_filename = os.path.join(preview_dir, f"{statistic}_map.gif")
-    imageio.mimsave(gif_filename, frames, fps=2)
+    imageio.mimsave(gif_filename, frames, fps=1, loop=0)
     print(f"Saved animated GIF {gif_filename}")
 
 # -------------------------------------------------------------------------
@@ -314,6 +315,7 @@ def main():
     hpt_file = f"{output_path_prefix}{hat_label}_{sim_years}.tif"
     mlws_file = f"{output_path_prefix}MLWS_{sim_years}.tif"
     mhws_file = f"{output_path_prefix}MHWS_{sim_years}.tif" 
+    tidal_range_file = f"{output_path_prefix}Tidal_Range_{sim_years}.tif" 
     percentiles_file = f"{output_path_prefix}Percentiles_{sim_years}.tif"
     monthly_lpt_file = f"{output_path_prefix}Monthly_LPT_{sim_years}.tif"
     monthly_mean_file = f"{output_path_prefix}Monthly_Mean_{sim_years}.tif"
@@ -321,19 +323,33 @@ def main():
     
     preview_dir = ensure_preview_dir(working_path)
     
+    # Colour map for the Tidal Range map
+    magma_cmap = colormaps["magma"]
     # Generate single map previews.
+    scale_label = "m - Relative to EOT20 MSL"
+
     single_products = [
-        {"title": "LPT", "file": lpt_file, "cmap": neg_cmap, "symmetric": False},
-        {"title": "HPT", "file": hpt_file, "cmap": pos_cmap, "symmetric": False},
-        {"title": "MLWS", "file": mlws_file, "cmap": neg_cmap, "symmetric": False},
-        {"title": "MHWS", "file": mhws_file, "cmap": pos_cmap, "symmetric": False},
+        {"file_prefix": "LPT", "title": "Lowest Predicted Tide - EOT20 tidal model", 
+         "subtitle": sim_years, "file": lpt_file, "cmap": diverging_cmap, "ax_min": -5, "ax_max": 5, "scale_label": scale_label},
+        {"file_prefix": "HPT", "title": "Hightest Predicted Tide - EOT20 tidal model", 
+         "subtitle": sim_years, "file": hpt_file, "cmap": diverging_cmap, "ax_min": -5, "ax_max": 5,  "scale_label": scale_label},
+        {"file_prefix": "MLWS", "title": "Mean Low Water Springs - EOT20 tidal model", 
+         "subtitle": sim_years, "file": mlws_file, "cmap": diverging_cmap, "ax_min": -5, "ax_max": 5, "scale_label": scale_label},
+        {"file_prefix": "MHWS", "title": "Mean High Water Springs - EOT20 tidal model", 
+         "subtitle": sim_years, "file": mhws_file, "cmap": diverging_cmap, "ax_min": -5, "ax_max": 5, "scale_label": scale_label},
+        {"file_prefix": "Tidal-range", "title": "Tidal Range - EOT20 tidal model", 
+         "subtitle": sim_years, "file": tidal_range_file, "cmap": magma_cmap, "ax_min": 0, "ax_max": 12, "scale_label": "m"},
     ]
     for prod in single_products:
         generate_single_map(
             file_path=prod["file"],
+            file_prefix=prod["file_prefix"],
             title=prod["title"],
+            subtitle=prod["subtitle"],
             cmap=prod["cmap"],
-            symmetric=prod["symmetric"],
+            ax_min=prod["ax_min"],
+            ax_max=prod["ax_max"],
+            scale_label=prod["scale_label"],
             preview_dir=preview_dir,
             config=config,
             land_mask_gdf=land_mask_gdf
@@ -350,16 +366,21 @@ def main():
     
     # Generate monthly maps and animated GIFs.
     monthly_products = [
-        {"statistic": "Monthly_LPT",  "file": monthly_lpt_file,  "cmap": neg_cmap,       "symmetric": False},
-        {"statistic": "Monthly_Mean", "file": monthly_mean_file, "cmap": diverging_cmap, "symmetric": True},
-        {"statistic": "Monthly_HPT",  "file": monthly_hpt_file,  "cmap": pos_cmap,       "symmetric": False},
+        {"statistic": "Monthly_LPT",  "title": "Monthly Climatology - Lowest Predicted Tide", 
+         "file": monthly_lpt_file,  "cmap": diverging_cmap, "ax_min": -6, "ax_max": 6},
+        {"statistic": "Monthly_Mean", "title": "Monthly Climatology - Mean Tide", 
+         "file": monthly_mean_file, "cmap": diverging_cmap, "ax_min": -0.15, "ax_max": 0.15},
+        {"statistic": "Monthly_HPT",  "title": "Monthly Climatology - Highest Prediced Tide", 
+         "file": monthly_hpt_file,  "cmap": diverging_cmap, "ax_min": -6, "ax_max": 6},
     ]
     for prod in monthly_products:
         generate_monthly_maps(
             file_path=prod["file"],
             statistic=prod["statistic"],
+            title=prod["title"],
             cmap=prod["cmap"],
-            symmetric=prod["symmetric"],
+            ax_min=prod["ax_min"],
+            ax_max=prod["ax_max"],
             preview_dir=preview_dir,
             config=config,
             land_mask_gdf=land_mask_gdf,
