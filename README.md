@@ -200,6 +200,8 @@ On Windows the processing can be split to run as multiple background tasks in th
 
 Each process for the au.yaml configuration uses approximately 400 - 600 MB of RAM.
 
+Originally the plan was to simulate the full 19 years needed to fully characterise the LAT and HAT, but this leads to an excessive simulation time, so we reduced the simulation period to 5 years. Even still on a 4 core machine processing the au.yaml configuration takes ~400 hours. 
+
 ```batch
 start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 0
 start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 1

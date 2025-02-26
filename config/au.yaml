@@ -7,16 +7,16 @@ grid_path: "working/EOT20-au/grid.tif"
 tide_model_path: "data/in-3p/World_EOT20_2021/ocean_tides"
 clipped_tide_model_path: "working/EOT20-au/ocean_tides"
 clipping_buffer_deg: 0.25
-start_date: "2005-01-01"
+start_date: "2019-01-01"
 end_date: "2024-12-31"
 time_step: 0.5
 working_path: "working/EOT20-au/tmp"
-lat_label: 'LAT'
-hat_label: 'HAT'
+lat_label: 'LPT'
+hat_label: 'HPT'
 output_path_prefix: "data/out/AU_AIMS_EOT20-tide-stats_"
 author: "Eric Lawrey"
 organization: "Australian Institute of Marine Science"
-description: "Tidal statistics derived from EOT20 using pyTMD run over 19 years (2005 - 2024)."
+description: "Tidal statistics derived from EOT20 using pyTMD run over 5 years (2019 - 2024)."
 reference: "Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS, Percentiles) derived from the EOT20 tidal model (NESP MaC 3.17, AIMS) (V1) [Data set]. eAtlas. https://doi.org/10.26274/z8b6-zx94"
 metadata_link: "https://doi.org/10.26274/z8b6-zx94"
 license: "CC-BY 4.0"
