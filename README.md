@@ -175,6 +175,8 @@ Merge the results:
 python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
 ```
 
+![Tidal Range for Northern Australia](media/Tidal-range_map.png)
+
 # Reproducing the final Australian EOT20 Tidal Stats dataset
 The published tidal statistics involves simulating over a wide area over a full 19 years to ensure that LAT and HAT estimates are as accurate as possible. For this reason the processing takes a long time. It is therefore recommended that recalculating 
 
