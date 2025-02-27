@@ -189,22 +189,20 @@ This will generate a visualisation of every statistic calculated in this test. Y
 ![Tidal Range for Northern Australia](media/Tidal-range_map.png)
 
 # Reproducing the final Australian EOT20 Tidal Stats dataset
-The the full tidal statistics dataset for Australia involves simulating over a larger area and for a longer period in time. To fully capture the effects of the lunar cycle on tides a 19-year period should be simulated. published tidal statistics involves simulating over a wide area over a full 19 years to ensure that LAT and HAT estimates are as accurate as possible. For this reason the processing takes a long time. It is therefore recommended that recalculating 
+The full tidal statistics dataset for Australia involves simulating over a larger area and for a longer period in time. To fully capture the effects of the lunar cycle on tides a 19-year period should be simulated. Unfortunately calculating over this full lunar cycle for such a large area is computationally expensive. We therefore limit the simulation to a 5-year period from 2021 - 2025, a period where the tidal ranges are the largest in the 19 year cycle.  
 
-Setup the Grid:
+1. Setup the Grid:
 ```bash
 python 02-tide_model_grid.py --config config/au.yaml
 ```
 
-Calculate the stats across multiple processes. On a HPC the processing should be split into multiple processes using the `split` and `index` parameters using SLURM to coordinate the process.
+2. Calculate the stats across multiple processes. On a HPC the processing should be split into multiple processes using the `split` and `index` parameters using SLURM to coordinate the process.
 
 NOTE: TODO - Add details for getting this script to run on HPC
 
 On Windows the processing can be split to run as multiple background tasks in the same command line using `start`.
 
-Each process for the au.yaml configuration uses approximately 400 - 600 MB of RAM.
-
-Originally the plan was to simulate the full 19 years needed to fully characterise the LAT and HAT, but this leads to an excessive simulation time, so we reduced the simulation period to 5 years.  
+Each process for the au.yaml configuration uses approximately 400 - 600 MB of RAM. 
 
 ```batch
 start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 0
@@ -215,8 +213,7 @@ start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 3
 
 ## Processing performance
 The following is the benchmarked processing time for the au.yaml configuration. Processing the full Australian grid takes significant computing time. 
-In this benchmark we started the simulation and reported the first time estimate by the script, which was 25 pixels per process.
-## Performance Benchmark
+In this benchmark we started the simulation and report on the first time estimate by the script, which was an extrapolation after 25 pixels per process were processed.
 
 | CPU                             | Split | Simulation Period (years) | Estimated Processing Time (hours) |
 |---------------------------------|-------|--------------------------|------------------------|
@@ -230,7 +227,7 @@ This shows that despite the laptop i7-1185G7 CPU having 4 cores supporting 8 thr
 
 We therefore predict that the 5 year run on a HPC with 16 cores will take 40 - 60 hours.
 
-# Resuming 03-tidal_stats processing
+## Resuming 03-tidal_stats processing
 The processing supports restarting from a previous partly completed run. The script progressively saves results after each 25 calculated pixels, and so restarting the script will pick up from where the processing previously finished. This means that if you have a previous run and wish to recalculate from scratch - perhaps because you changed the configuration parameters - then the `working_path` folder should be cleared out. If you delete all of the `working_path` folder then you will need to rerun `02-tide-_model_grid.py` to regenerate the grid file and the cropped EOT20 model. 
 
 # Script descriptions
