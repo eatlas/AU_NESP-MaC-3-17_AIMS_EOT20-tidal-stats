@@ -12,9 +12,9 @@ Tidal Statistics for Australia (Tidal range, LAT, HAT, MLWS, MHWS) derived from 
 
 Tides play a crucial role in shaping coastal and marine environments, influencing processes such as sediment transport, water clarity, the distribution of ecosystems and the structure of coral reefs. In particular, the tidal range, the difference between high and low tides, has significant implications for the physical and biological dynamics of intertidal regions. For coral reefs, tidal fluctuations determine the exposure and submersion of reef structures, influencing reef zonation, biodiversity, and habitat structure. Accurate and detailed tidal information is therefore essential for understanding these critical ecosystems.
 
-Despite the importance of tidal dynamics there are few public datasets that make tidal statistics, such as Lowest Astronomical Tide (LAT), Highest Astronomical Tide (HAT), Mean Low Spring Water (MLSW), Mean High Spring Water (MHSW), and tidal range readily available at a national scale. [Digital Earth Australia's Intertidal mapping](https://www.ga.gov.au/scientific-topics/dea/dea-data-and-products/dea-intertidal) combined tidal modelling as an integral part of interpretting marine satellite imagery (Bishop-Taylor, et al., 2019). They used tidal modelling to link the height of the water with each satellite image, then combined this with calculating the Normalised Differene Water Index to create 3-dimensional profiles of the shallow portions of the intertidal zone. They showed that sun synchronous satellites, such as the Sentinel 2 satellite used for the coastal imaging, only observes a limited portion of the full tidal range. As part of their analysis they developed downscaled intertidal tidal statistics such as LAT and HAT, based on the EOT20 dataset. The same tidal model that we use in this dataset. In this dataset we calculate additional tidal statistics that are useful for analysing the intertidal zone.
+Despite the importance of tidal dynamics there are few public datasets that make tidal statistics, such as Lowest Astronomical Tide (LAT), Highest Astronomical Tide (HAT), Mean Low Water Springs (MLWS), Mean High Water Strings (MHWS), and tidal range, readily available at a national scale. [Digital Earth Australia's Intertidal mapping](https://www.ga.gov.au/scientific-topics/dea/dea-data-and-products/dea-intertidal) combined tidal modelling as part of interpretting marine satellite imagery (Bishop-Taylor, et al., 2019). They used tidal modelling to link the height of the water with each satellite image, then combined this with calculating the Normalised Difference Water Index to create three-dimensional profiles of the shallow portions of the intertidal zone. They showed that sun-synchronous satellites, such as the Sentinel 2 satellite used for coastal imaging, only observe a limited portion of the full tidal range. As part of their analysis, they developed downscaled intertidal tidal statistics, LAT and HAT, based on the EOT20 dataset: the same tidal model that we use in this dataset. In this dataset, we calculate additional tidal statistics that are useful for analysing the intertidal zone.
 
-This dataset seeks to create national scale tidal statistics at sufficient resolution that fully represents the detail in the original tidal model. In this dataset we calculate the tidal statistics at 4x the resolution of the EOT20 model resulting in a grid resolution of 1/32 degree. 
+This dataset seeks to create national scale tidal statistics at a sufficient resolution that fully represents the detail in the original tidal model. In this dataset, we calculate the tidal statistics at four times the resolution of the EOT20 model, resulting in a grid resolution of 1/32 degree. 
 
 The primary driver for the development of this dataset was to assist in the mapping of coral reefs and intertidal zones, particularly in areas where tidal range plays a significant role in modulating visibility and habitat exposure. For instance, understanding the relationship between tidal range and satellite-derived waterline positions can guide the use of all-tide or low-tide composite imagery for detecting LAT. This distinction is critical in regions with high tidal ranges, where the disparity between Mean Sea Level (MSL) and LAT can introduce significant errors in mapping efforts.
 
@@ -23,11 +23,13 @@ The Empirical Ocean Tide model 2020 (EOT20) is a comprehensive global ocean tide
 
 Tidal constituents are the individual oscillatory components of tides, each corresponding to a specific gravitational interaction between the Earth, Moon, and Sun. These constituents are identified by unique names and letter codes (e.g., M2, S2, K1) and are characterized by their amplitude, phase, and frequency. By summing these components, tide predictions can be made for any given location (Parker, 2007). Models like EOT20 represent these tidal oscillations as spatial raster maps, showing the relative strength and phase of each constituent across the globe. The model's values are adjusted using satellite observations to best match real-world tides, accounting for variations in bathymetry and other dynamic oceanographic factors.
 
-EOT20 provides seventeen tidal constituents, including both primary components like M2, S2, N2, K2, and K1, as well as minor constituents such as 2N2, J1, M4, MF, and MM. These are provided on a global 0.125-degree grid stored in 17 NetCDF files (Hart-Davis, et al., 2021b). This high-resolution representation allows for precise modeling of tidal behaviors across the world's oceans. 
+EOT20 provides seventeen tidal constituents, including both primary components like M2, S2, N2, K2, and K1, as well as minor constituents such as 2N2, J1, M4, MF, and MM. These are provided on a global 0.125-degree grid, stored in 17 NetCDF files (Hart-Davis, et al., 2021b). This high-resolution representation allows for precise modeling of tidal behaviors across the world's oceans. 
 
 # Methods:
 
-The high resolution tidal dataset was generated using a suite of Python scripts. The overall methodology consists of four primary stages: download the tidal model and other source data, the creation of a processing grid (Tide-Model-Grid), the computation of tidal statistics (Tidal-Stats), and the subsequent merging of spatial subsets (Merge-Strips). These stages work in concert to produce spatially explicit estimates of tidal parameters—including estimates of the Lowest and Highest Astronomical Tides (LAT/HAT) or their predicted counterparts (LPT/HPT), as well as Mean Low Water Springs (MLWS) and Mean High Water Springs (MHWS)—tailored to the coastal and intertidal environments of Australian waters.
+The high resolution tidal dataset was generated using a suite of Python scripts. The overall methodology consists of four primary stages: downloading the tidal model and other source data, creating a processing grid and cropped version of the tidal model constituents to match the study area (Tide-Model-Grid),  computating the tidal statistics (Tidal-Stats), and merging of spatial subsets (Merge-Strips). These stages work in concert to produce spatially explicit estimates of tidal parameters—including estimates of the Lowest and Highest Astronomical Tides (LAT/HAT) or their predicted counterparts (LPT/HPT), as well as Mean Low Water Springs (MLWS) and Mean High Water Springs (MHWS)—tailored to the coastal and intertidal environments of Australian waters.
+
+The EOT20 tidal model was also compared with monthly tidal statistics against 70 tide gauge stations around Australia. 
 
 # References
 
@@ -41,17 +43,17 @@ Parker, B. (2007) _Tidal Analysis and Prediction NOAA Special Publication NOS CO
 
 
 # License
-The code associated with this dataset is made available under an MIT license. The generated dataset is made available under a Creative Commons Attribution 4.0 International license.
+The code associated with this dataset is made available under the MIT license. The generated dataset is made available under a Creative Commons Attribution 4.0 International license.
 
 
 # Installation Guide
 
-This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. Note: that the HPC and Linux instructions are untested and is currently just a proposed method based on what I think might work.
+This repository provides both **Conda** (`environment.yaml`) and **pip** (`requirements.txt`) options for setting up dependencies. Below are the installation steps for **Linux, Windows, and HPC** environments. 
 
 ## 1. Prerequisites
 - Ensure **Python 3.9+** is installed.
 - If using Conda, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or load the **conda module** (on HPC).
-- If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed. These should be installed using the provided pip instructions, however success will vary across platforms.
+- If using pip, ensure system dependencies like **GDAL, PROJ, and GEOS** are installed. These should be installed automatically using the provided pip instructions, but success may vary across platforms.
 
 ## 2. Clone the Repository
 ```bash
@@ -60,7 +62,7 @@ cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
 ```
 
 ## 3A. Using Conda (Recommended)
-Conda is recommended because it makes installing of GDAL, PROJ and GEOS more straight forward.
+Conda is recommended because, in theory, it makes the installing of GDAL, PROJ and GEOS more straight forward across a wider range of platforms. In my testing on Windows both conda and pip worked just as well as each other. The only real difference is that conda can be used to install a specific version of Python into an environment, where as Pip will use the version of Python that is installed.
 
 1. Create the Conda environment. This step can take 10 min.
     ```bash
@@ -70,12 +72,12 @@ Conda is recommended because it makes installing of GDAL, PROJ and GEOS more str
     ```bash
     conda activate venv_eot20_3_13
     ```
-A second version the environment script is provided (`environment-3-9-7.yaml`) that builds older version of Python and libraries that has been tested to work. This is provided as a reference to help getting the code to run on older versions of Python. 
+A second version of the environment script is provided (`environment-3-9-7.yaml`) that builds an older version of Python and libraries that have been tested to work. This is provided as a reference to help getting the code to run on older versions of Python. 
 
-I found that conda struggles building the environments when the specific library version numbers are not specified. The two versions provided were tested to work on Windows.
+I found that conda struggles with building environments when the specific library version numbers are not specified. The two versions provided were tested to work on Windows.
 
 ## 3B. Using Pip (Alternative)
-The virtual environment will be created at the root of the folder that the command is run. It is most common to run this in the project folder. For this you will already need Python to be installed. The code has been tested on Python 3.9.7
+The virtual environment will be created at the root of the folder that the command is run. It is most common to run this in the project folder. For this, you will already need Python to be installed. The code has been tested on Python 3.9.7 and 3.13
 
 For setting up with plain Python in Windows.
 1. Download [Python 3.13](https://www.python.org/downloads/release/python-3131/). 
@@ -87,39 +89,39 @@ For setting up with plain Python in Windows.
     ```
     **Remember to swap out the user** in the path.
 4. Activate the environment
-  For windows (command prompt CMD)
-  ```cmd
-  venv_eot20_3_13\Scripts\activate.bat
-  ```
+For windows (command prompt CMD):
+    ```cmd
+    venv_eot20_3_13\Scripts\activate.bat
+    ```
 
-  For macOS/Linux (untested)
-  ```bash
-  source eot20_venv/bin/activate
-  ```
+    For macOS/Linux (untested)
+    ```bash
+    source eot20_venv/bin/activate
+    ```
 4. Install dependencies
     ```cmd
     pip install -r requirements-3-13.txt
     ```
-There is also a `requirements-3-9.txt` that is the version of libraries that are known to work with Python 3.9.
+There is also a `requirements-3-9.txt` file that contains the version of libraries that are known to work with Python 3.9.
 
 ## 4. Verify installation
-This should flush out whether the setup is mostly working. Once this is working you should run the quick test run.
+This should help quickly indentify whether the setup is mostly working. Once this is working, you should run the quick test run.
 ```bash
 python -c "import rasterio, geopandas, pyTMD; print('All libraries imported successfully')"
 ```
 
 ## 5. HPC Installation Notes
-This section is a place holder for documentation on how to get this code running on a HPC.
+TODO: This section is a placeholder for documentation on how to get this code running on an HPC.
 
 # Testing the code
-Once you have an operating setup with all the libraries installed your first run of the code should be to run one of the small simulations that only takes a few minutes. This will identify any issues with the setup prior to performing the full run of the code.
+Once you have an operating setup with all the libraries installed, your first run of the code should be to run one of the small simulations that only takes a few minutes. This will identify any issues with the setup prior to performing the full run of the code.
 
 ## Quick test run
 1. **Download source data**: This includes the EOT20 model tide constituent files and the land masking files.
     ```bash
     python 01-download-input-data.py
     ```
-2. **Create the simulation grid**: Calculate a grid that we will perform the tidal simulation on. A YAML configuration file is used to specify the all the parameters of the simulation such as the bounding box, resolution, time extent, etc. In this quick run we will use a preconfigured example config file to simulate just one month for a small section of the Kimberly in Western Australia. This simulation will only take less than 1 minute. This script will make the model grid, and create a cropped version of the EOT20 tidal constituent files to make the simulation faster.
+2. **Create the simulation grid**: This step calculates a grid that we will perform the tidal simulation on. A YAML configuration file is used to specify all the parameters of the simulation, such as the bounding box, resolution, time extent, etc. In this quick run, we will use a preconfigured example config file to simulate just one month for a small section of Kimberley in Western Australia. This simulation only takes less than 1.5 minutes. This script will make the model grid, and create a cropped version of the EOT20 tidal constituent files to make the simulation faster.
     ```bash
     python 02-tide_model_grid.py --config config/king-sound-quick-test.yaml
     ```
@@ -127,8 +129,8 @@ Once you have an operating setup with all the libraries installed your first run
     ```bash
     python 03-tidal_stats.py --config config/king-sound-quick-test.yaml
     ```
-    This script has a feature to split the work into processes for parallel processing, but in this quick test it is not needed.
-4. **Consolidate the result and save to its final destination**: When the tidal simulation is split across multiple processes, each process calculates a separate portion of the grid (organised as strips). This script merges all the strips back into one raster per statistic and saves the result to the final destination (specified in the YAML config). In this run because we didn't split the job up, so this script simply makes a copy of the data into the final destination `working/EOT20-king-sound/`
+    This script has a feature to split the work into processes for parallel processing, but in this quick test, it is not needed.
+4. **Consolidate the result and save it to its final destination**: When the tidal simulation is split across multiple processes, each process calculates a separate portion of the grid (organised as strips). This script merges all the strips back into one raster per statistic and saves the result to the final destination (specified in the YAML config). In this run, because we didn't split the job up, this script simply makes a copy of the data into the final destination `working/EOT20-king-sound/`
     ```bash
     python 04-merge_strips.py --config config/king-sound-quick-test.yaml
     ```
@@ -138,26 +140,28 @@ Once you have an operating setup with all the libraries installed your first run
     - `MHWS_2024-01_2024-01.tif`
     - `MLWS_2024-01_2024-01.tif`
 
-    These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images properly because the data in the files is in 32 bit float.
+    These files can be loaded into QGIS or ArcGIS Pro for viewing. Windows will not correctly show these images properly because the data in the files is in 32-bit float.
 
-To split the processing on windows without opening multiple command line windows you can use the `start /b` to start multiple background tasks. 
+To split the processing on windows without opening multiple command line windows, you can use the `start /b` to start multiple background tasks. 
 ```batch
 start /b python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 0
 start /b python 03-tidal_stats.py --config config/king-sound-quick-test.yaml --split 2 --index 1
 ```
+The downside of using this approach is that the task explorer is needed to stop the execution of long running scripts and the notification messages from all parallel script are intermixed in the on terminal.
 
 ## Larger parallel test run
-This run is much larger than the quick test run as it simulated northern Australia over a 1 year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example we have split the number of parallel runs into 4 so that it can be run locally on a laptop for testing purposes. This test take approximately 12 hours when split into 4 processes.
+This run is much larger than the quick test run, as it simulates northern Australia over a one-year period. This test is long enough that it is worth splitting up into multiple parallel runs. In this example, we split the simulation into four parallel runs. This test takes approximately 12 hours on a laptop. 
 
-Parallelism is achieved by splitting the task into multiple independed runs of the `03-tidal_stats.py` script that each process an independent strip of the final grid. The results are then merged together using the `04-merge_strips.py`. To split the processing we indicate to the script how many vertical strips the grid should be `split` and then provide each process with an `index` to indicate which portion it should process.
+Parallelism is achieved by splitting the task into multiple independent runs of the `03-tidal_stats.py` script, with each process handling an independent strip of the final grid. The width of the strips is adjusted so that each process calculates the results for approximately the same number of pixels. The results are then merged together using the `04-merge_strips.py`. This script also calculates the tidal range from HPT-LPT. To split the processing, we indicate to the script how many vertical strips the grid should be `split` into and then provide each process with an `index` to indicate which portion it should process.
 
-Note that because the tidal model is not simulated for land areas not all parallel splits will take the same amount of time. This is a result of the simple approach used for splitting up the work.
 
-Setup the Grid:
+1. **Set Up the Grid**:
 ```bash
 python 02-tide_model_grid.py --config config/northern-au-test.yaml
 ```
-Start four command line windows to run four processes in parallel. On windows I am using conda and so each of these is an Anaconda prompt corresponding to the environment needed for this code. Running this code took 3 hr 18 min.
+
+2. **Simulate over the area, splitting into parallel runs**:
+Start four command line windows to run four processes in parallel. On Windows I am using Conda and so each of these is an Anaconda prompt corresponding to the environment needed for this code. Running this takes 12 hours.
 
 ```bash
 python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 0
@@ -168,24 +172,24 @@ python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index
 
 python 03-tidal_stats.py --config config/northern-au-test.yaml --split 4 --index 3
 ```
-Each script will write to standard out, but also write a log to `working\EOT20-nau-test\tmp`. The log files are intended to be useful for monitoring running the script on HPC.
+Each script will write to standard out but also write a log to `working\EOT20-nau-test\tmp`. The log files are intended to be useful for monitoring running the script on HPC.
 
-Merge the results:
+3. **Merge the results**:
 ```bash
 python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
 ```
 
-Visualise the results:
+4. **Visualise the results**:
 ```bash
 python 06-generate-preview-maps.py --config config\northern-au-test.yaml
 ```
 
-This will generate a visualisation of every statistic calculated in this test. You will find these visualisation in `working/EOT20-nau-test/tmp/preview`
+This will generate a visualisation of every statistic calculated in this test. You will find these visualisations in `working/EOT20-nau-test/tmp/preview`
 
 ![Tidal Range for Northern Australia](media/Tidal-range_map.png)
 
 # Reproducing the final Australian EOT20 Tidal Stats dataset
-The published tidal statistics involves simulating over a wide area over a full 19 years to ensure that LAT and HAT estimates are as accurate as possible. For this reason the processing takes a long time. It is therefore recommended that recalculating 
+The the full tidal statistics dataset for Australia involves simulating over a larger area and for a longer period in time. To fully capture the effects of the lunar cycle on tides a 19-year period should be simulated. published tidal statistics involves simulating over a wide area over a full 19 years to ensure that LAT and HAT estimates are as accurate as possible. For this reason the processing takes a long time. It is therefore recommended that recalculating 
 
 Setup the Grid:
 ```bash
@@ -200,7 +204,7 @@ On Windows the processing can be split to run as multiple background tasks in th
 
 Each process for the au.yaml configuration uses approximately 400 - 600 MB of RAM.
 
-Originally the plan was to simulate the full 19 years needed to fully characterise the LAT and HAT, but this leads to an excessive simulation time, so we reduced the simulation period to 5 years. Even still on a 4 core machine processing the au.yaml configuration takes ~400 hours. 
+Originally the plan was to simulate the full 19 years needed to fully characterise the LAT and HAT, but this leads to an excessive simulation time, so we reduced the simulation period to 5 years.  
 
 ```batch
 start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 0
@@ -209,9 +213,25 @@ start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 2
 start /b python 03-tidal_stats.py --config config/au.yaml --split 4 --index 3
 ```
 
+## Processing performance
+The following is the benchmarked processing time for the au.yaml configuration. Processing the full Australian grid takes significant computing time. 
+In this benchmark we started the simulation and reported the first time estimate by the script, which was 25 pixels per process.
+## Performance Benchmark
+
+| CPU                             | Split | Simulation Period (years) | Estimated Processing Time (hours) |
+|---------------------------------|-------|--------------------------|------------------------|
+| Intel 11th Gen i7-1185G7 @ 3GHz | 1     | 19                       | 4235                   |
+| Intel 11th Gen i7-1185G7 @ 3GHz | 1     | 5                        | 618                    |
+| Intel 11th Gen i7-1185G7 @ 3GHz | 4     | 19                       | 1810                   |
+| Intel 11th Gen i7-1185G7 @ 3GHz | 4     | 5                        | 290                    |
+
+
+This shows that despite the laptop i7-1185G7 CPU having 4 cores supporting 8 threads, using all 4 cores only resulted in a 2.1 - 2.3 speed improvement. This is because this CPU is power limited.
+
+We therefore predict that the 5 year run on a HPC with 16 cores will take 40 - 60 hours.
 
 # Resuming 03-tidal_stats processing
-The processing supports restarting the processing. The script progressively saves the results and so restarting the script will pick up from where the processing previously finished. This means if you have a previous run and you which to recalculate from scratch, because maybe you changed the configuration parameters, then the `working_path` folder should be cleared out. If you delete all of the `working_path` folder then you will need to rerun `02-tide-_model_grid.py` to regenerate the grid file and the cropped EOT20 model. 
+The processing supports restarting from a previous partly completed run. The script progressively saves results after each 25 calculated pixels, and so restarting the script will pick up from where the processing previously finished. This means that if you have a previous run and wish to recalculate from scratch - perhaps because you changed the configuration parameters - then the `working_path` folder should be cleared out. If you delete all of the `working_path` folder then you will need to rerun `02-tide-_model_grid.py` to regenerate the grid file and the cropped EOT20 model. 
 
 # Script descriptions
 The overall goal of the workflow is to generate high-resolution tidal datasets for Australian coastal and intertidal zones using the EOT20 global tidal model. The process is broken down into four modular scripts that each play a specific role in the workflow:
@@ -220,22 +240,25 @@ The overall goal of the workflow is to generate high-resolution tidal datasets f
 This script downloads all the source data used in the tidal modelling, including the EOT20 model tidal constituent data files and land clipping data.
 
 ## Tide-Model-Grid Script (02-tide_model_grid.py):
-This script sets the stage by generating a spatial grid (output as a GeoTIFF) that identifies which grid cells require tidal processing. Using a user-defined bounding box and cell resolution (default 1/8°). This grid acts as a mask for where the tidal modelling should be performed. The EOT20 tidal constituents cover land areas and due to their large grid size a significant portion of intertidal areas have no tidal constituents available. To overcome this we ensure that the Tide-Model-Grid includes extra pixel overlaps with land and in the Tidal-Stats script we use the extrapolation capabilities of the pyTMD library to calculate the tides in these locations. 
+This script sets the stage by generating a spatial grid (output as a GeoTIFF) that identifies which grid cells require tidal processing. It uses a user-defined bounding box and cell resolution, based on the `grid_bbox` and `grid_cell_size` specified in the YAML configuration file. This grid acts as a mask for where the tidal modelling should be performed. The EOT20 tidal constituents cover land areas, and, due to their large grid size, a significant portion of intertidal areas have no tidal constituents available. To overcome this, we ensure that the Tide-Model-Grid includes extra pixel overlaps with land, and, in the Tidal-Stats script, we use the extrapolation capabilities of the pyTMD library to calculate the tides in these locations. 
 
-To improve the performance of the modelling this script also creates a clipped version of the EOT20 tidal constituents to match the user-defined bounding box, with a bit of buffering.
+To improve the performance of the modelling, this script also creates a clipped version of the EOT20 tidal constituents to match the user-defined bounding box, with a bit of buffering.
 
 ## Tidal-Stats Script (03-tidal_stats.py):
-Building on the grid created by the first script, this script performs the core tidal simulations and computes statistics for each grid cell that is flagged for processing. Using the pyTMD library, the script simulates tidal elevations over the specified time period and extracts key statistics such as the lowest and highest predicted tides (LPT/HPT) and mean low and high water springs (MLWS/MHWS). The MLWS and MHWS are calculated by averaging the tidal extremes during the periods (-0.5 days to +4days) of each new and full moons. 
-The tidal modelling can be slow as as accurate long time series simulations are needed to calculate accuracte statistics. To allow for faster processing the tidal modelling can be processed in independent strips. The strips are then merged back into the final full grid with the merge-strips script. The script also supports restart cancelling and restarting the processing as it periodically saves intermediate results. On restart it will resume from where it left off. 
+Building on the grid created by the first script, this script performs the core tidal simulations and computes statistics for each grid cell that is flagged for processing. Using the pyTMD library, the script simulates tidal elevations over the specified time period and extracts key statistics such as the lowest and highest predicted tides (LPT/HPT) and mean low and high water springs (MLWS/MHWS). The MLWS and MHWS are calculated by averaging the tidal extremes during the periods (-0.5 days to +4days) of each new and full moon. 
+
+The tidal modelling can be slow, as as accurate long time series simulations are needed to calculate accurate statistics. To allow for faster processing, the tidal modelling can be processed in independent strips. The strips are then merged back into the final full grid with the merge-strips script. The script also supports cancelling and restarting the processing, as it periodically saves intermediate results. On restart, it will resume from where it left off. 
 
 ## Merge-Strips Script (04-merge_strips.py):
 After the tidal statistics have been computed for each vertical slice, this final script merges the separate GeoTIFF outputs into complete, contiguous raster datasets for each tidal statistic. 
 
 ## Time series validation (05a-validation-time-series.py)
-This script compares the predictions of the EOT20 model against tide gauges that are part of the Australian Baseline Sea Level Monitoring Project. This comparison is performed on monthly min, mean and max statistics. 
+This script compares the predictions of the EOT20 model against tide gauges that are part of the Australian Baseline Sea Level Monitoring Project. This comparison is performed on monthly min, mean, and max statistics. 
 
 ## Monthly tidal climatology validation (05b-validation-month-clim.py)
-This script calculates the monthly climatology of the min, mean and max tides, with the goal of showing the typical tidal conditions experienced in each month. To estimate the monthly climatology we pool all the measurements for a given month (monthly min, mean, max statistics) from the entire time series to calculate the median monthly minimum, median monthly mean and the median monthly maximum. We use a median to help to remove outliers caused by storm events, to end up with a result that is closer to the tidal predictions that are just based on astrononmical modelling. For consistency with also apply calculate the tidal prediction climatology using the same process. First predicting a 19 year series at 30 min intervales, then calculating the monthly min, mean and max, then calculating the climatology across the 19 years combining the multiple results for each month using a median. While using a median on the monthly statistics will remove some of the noise introduced by storms it will not remove it completely. This is because the monthly minimum and maximum and biased to capture small transient events. If a location experiences at least one event per month then the minimum and maximum will be consistently shifted from the astronomical predictions. Since our goal is to provide a dataset that can be used to analyse the environmental conditions of the intertidal zone then it is more important to understand typical tidal conditions, rather than simply astronomical predictions.
+This script calculates the monthly climatology of the min, mean, and max tides, with the goal of showing the typical tidal conditions experienced in each month. To estimate the monthly climatology, we pool all the measurements for a given month (monthly min, mean, max statistics) from the entire time series to calculate the median monthly minimum, median monthly mean and the median monthly maximum. We use a median to help remove outliers caused by storm events, resulting in a dataset that is closer to the tidal predictions based solely on astronomical modelling. 
+
+For consistency, we also calculate the tidal prediction climatology using the same process: first predicting a 19 year series at 30 min intervales, then calculating the monthly min, mean, and max, and then calculating the climatology across the 19 years, combining the multiple results for each month using a median. While using a median on the monthly statistics will remove some of the noise introduced by storms, it will not remove it completely. This is because the monthly minimum and maximum are biased to capture small transient events. If a location experiences at least such one event per month, then the minimum and maximum will be consistently shifted from the astronomical predictions. Since our goal is to provide a dataset that can be used to analyse the environmental conditions of the intertidal zone, then it is more important to understand typical tidal conditions, rather than simply astronomical predictions.
 
 ## Map visualisation of stats (06-generate-preview-maps.py)
 This script generates maps of each of the statistics from the data generated by `04-merge_strips.py`. 
