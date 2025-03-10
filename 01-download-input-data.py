@@ -56,7 +56,7 @@ ocean_tides_zip = os.path.join(base_path, "ocean_tides.zip")
 
 # Unzip ocean_tides.zip
 ocean_tides_folder = os.path.join(base_path, "ocean_tides")
-if os.path.exists(ocean_tides_zip):
+if os.path.exists(ocean_tides_folder):
     print(f"{ocean_tides_folder} found. Skipping...")
 else:
     unzip_file(ocean_tides_zip, base_path)
