@@ -176,7 +176,7 @@ Each script will write to standard out but also write a log to `working\EOT20-na
 
 3. **Merge the results**:
 ```bash
-python 04-merge_strips.py --config config/northern-au-test.yaml --split 4
+python 04-merge_strips.py --config config/northern-au-test.yaml
 ```
 
 4. **Visualise the results**:
