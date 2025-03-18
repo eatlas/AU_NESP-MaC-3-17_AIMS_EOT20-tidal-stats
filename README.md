@@ -181,7 +181,7 @@ python 04-merge_strips.py --config config/northern-au-test.yaml
 
 4. **Visualise the results**:
 ```bash
-python 06-generate-preview-maps.py --config config\northern-au-test.yaml
+python 06-generate-preview-maps.py --config config/northern-au-test.yaml
 ```
 
 This will generate a visualisation of every statistic calculated in this test. You will find these visualisations in `working/EOT20-nau-test/tmp/preview`
