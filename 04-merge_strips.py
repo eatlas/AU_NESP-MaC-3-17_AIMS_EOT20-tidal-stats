@@ -103,6 +103,9 @@ def main():
         file_list = sorted(file_list, key=extract_strip_num)
         print(f"Merging {len(file_list)} files for {stat}...")
         
+        if not os.path.exists(output_path_prefix):
+            os.makedirs(output_path_prefix)
+            
         # Continue with the merging process as before...
         output_file = f"{output_path_prefix}{stat}_{sim_years}.tif"
         if len(file_list) == 1:
