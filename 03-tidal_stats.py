@@ -52,7 +52,7 @@ def quit_listener():
     Waits for the user to type 'q' and press Enter to quit.
     """
     global stop_processing
-    print("\nPress 'q' and Enter at any time to stop the script gracefully...\n")
+    print("\nPress 'q' and Enter at any time to stop the script gracefully. Ctrl+C will sometimes lockup...\n")
     while True:
         user_input = input().strip().lower()
         if user_input == "q":
@@ -60,9 +60,7 @@ def quit_listener():
             print("\nStopping after current process...\n")
             break
 
-# Start quit listener thread
-quit_thread = threading.Thread(target=quit_listener, daemon=True)
-quit_thread.start()
+
 
 # -----------------------------------------------------------------------------
 def main():
@@ -77,6 +75,9 @@ def main():
                         help="0-based index of the slice to process")
     parser.add_argument("--debug", action="store_true",
                         help="Enable debug plotting for each processed pixel.")
+    parser.add_argument("--enable_quit_listner", action="store_true",
+                        help=("If set then script can be gracefully stopped with a key input rather than Ctrl+C, "
+                        "which can cause terminal lockups. Don't use this option on HPC as there is no key input."))
     args = parser.parse_args()
 
     required_params = [
@@ -106,6 +107,14 @@ def main():
     lat_label = config.get("lat_label")
     hat_label = config.get("hat_label")
     index = args.index
+
+    if args.enable_quit_listner:
+        # Start quit listener thread
+        # The quit listener does not work in a HPC environment.
+        quit_thread = threading.Thread(target=quit_listener, daemon=True)
+        quit_thread.start()
+    else:
+        print("Use Ctrl-C to stop the script, however this might fail due to GDAL library issues.")
 
     log_file = f"{working_path}/tidal_stats_{args.index}.log"
     if not os.path.exists(working_path):
