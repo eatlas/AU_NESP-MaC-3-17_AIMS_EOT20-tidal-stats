@@ -47,6 +47,7 @@ def main():
         "tide_model_path",
         "clipped_tide_model_path",
         "clipping_buffer_deg",
+        "working_path"
     ]
 
     # Load model run parameters from the YAML config file.
@@ -64,11 +65,14 @@ def main():
     tide_model_path = config.get("tide_model_path")
     clipped_tide_model_path = config.get("clipped_tide_model_path")
     clipping_buffer_deg = config.get("clipping_buffer_deg")
+    working_path = config.get("working_path")
 
     # Ensure the output directory for the grid exists.
     out_dir = os.path.dirname(grid_path)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
+    if not os.path.exists(working_path):
+        os.makedirs(working_path)
 
     min_lon, min_lat, max_lon, max_lat = grid_bbox
 
