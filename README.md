@@ -111,7 +111,133 @@ python -c "import rasterio, geopandas, pyTMD; print('All libraries imported succ
 ```
 
 ## 5. HPC Installation Notes
-TODO: This section is a placeholder for documentation on how to get this code running on an HPC.
+
+As explained above, the model requires significant computing power to execute the 03-tidal_stats.py script using the whole of Australia data. The following script shows how we used HPC to execute the entire pipeline. We provide information on resource utilisation at the end of the section. 
+
+    ```bash
+	#!/bin/bash 					## We use bash in this case
+	#SBATCH --ntasks=50 			## The number of paralel tasks are limited to 50. Please change this number to match your environment. A higher number here will normally mean longer wait in the Slurm queue.
+	#SBATCH --cpus-per-task=1		## The scipt will use 1 CPU per task. 
+	#SBATCH --mem-per-cpu=5G		## Pleease adjust this to match your environment. The higher the number the longer the wait in the Slurm queue.
+	#SBATCH --job-name=AU-NESP		## Name that shows in the Slurm queue
+	#SBATCH --time=0				## Zero means no (wall) time limitation. Wall time is maximum time to run the script for. 
+	#SBATCH --partition=cpuq		## Please change cpuq to your partition name (or delete the whole line to automatically assign partition)
+
+	module purge ## Purge all loaded modules
+	module load slurm ## load Slurm module. On some HPCs this is automatically loaded after Purge.
+	module load conda/anaconda3 #Loading Anaconda module. Change this top suit your environment. Execute module avail to get the list of available modules in your environment. 
+	## The following 4 lines test whether the directory exists and if not, the script will clone the code from GitHub, otherwise, it will skip to after fi
+	if [ ! -d "AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats" ] ; then 
+			echo "cloning"
+			git clone https://github.com/eatlas/AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
+	fi
+	cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats ## move to a directory where the code is.
+	echo "create environment-3-13"
+	## The following 4 lines will test whether the virtual environment exists and if not, create it. If yes, the script will skip to the line after fi.
+	if conda info --envs | grep -q venv_eot20_3-13; then
+			echo "venv_eot20_3-13 already exists";
+			else conda env create -f environment-3-13.yaml;
+	fi
+	echo "activate venv_eot20_3-13"
+	## Activate virtual environment for us to run the scripts and access the libraries that we need
+	conda activate venv_eot20_3-13
+	## The following 4 lines will test whether the data has already been downloaded and if not, it will doenaload it. Othervise, the script will skipp to after the fi line
+	if [ ! -d "data/in-3p" ] ; then
+			echo "downloading the data"
+			python 01-download-input-data.py
+	fi
+	echo "Setting up the grid"
+	## The following code will setup the grid using data in the config/au.yaml file
+	python 02-tide_model_grid.py --config config/au.yaml
+	echo "Done setting up the grid"
+	## This is the most compute demanding script in the pipeline. The script will start 
+	## SLURM_NTASKS number of processes. the value of SLURM_NTASKS is the value we set for the --ntasks (in our case 50). 
+	## The array iz zero based. The tasks wil run in paralel and use one processor each. 
+	## We did not assign specific memory allocation to each task, that was left to Slurm to decide on. 
+	## Each srun will be run as one task only, ensuring that we can start all SLURM_NTASKS tasks.
+	echo "Running parallel tasks"
+	for (( i = 0; i < $SLURM_NTASKS; i++ )); do
+			srun --ntasks=1 python 03-tidal_stats.py --config config/au.yaml --split $SLURM_NTASKS --index $i &
+	done
+	wait # wait is crucial so the tasks wait for the last task to execute before the execution of the script continues. 
+	echo "Finished running parallel tasks"
+
+	echo "Merging the results"
+	## This script will merge the results from all SLURM_NTASKS processes.
+	python 04-merge_strips.py --config config/au.yaml
+	echo "Completed merging the results"
+
+	echo "Visualising"
+	## Finally, the last script in the pipeline will generates preview maps for tidal statistics products
+	## Readme for this script indicates that there is a bug in the script that affects the colors of the elements on the map. 
+	python 06-generate-preview-maps.py --config config/au.yaml
+	echo "Completed visualisation process"
+    ```
+
+The execution of the pipeline using the code above took the resources as in the following dataset:
+
+| JobID                   | Elapsed    | NCPUS   | MaxRSS  |
+|-------------------------|------------|---------|---------|
+| 422604                  | 1-03:57:06 | 50      |         |
+| 422604.batch 1-03:57:06 | 50         | 934788K |         |
+| 422604.0                | 1-02:06:41 | 1       | 408540K |
+| 422604.1                | 1-02:08:55 | 1       | 408268K |
+| 422604.2                | 1-01:59:40 | 1       | 414248K |
+| 422604.3                | 1-02:37:44 | 1       | 409428K |
+| 422604.4                | 1-01:54:16 | 1       | 409352K |
+| 422604.5                | 1-02:15:00 | 1       | 415180K |
+| 422604.6                | 1-02:54:45 | 1       | 409956K |
+| 422604.7                | 1-02:17:40 | 1       | 407468K |
+| 422604.8                | 1-02:28:12 | 1       | 409988K |
+| 422604.9                | 1-02:50:32 | 1       | 408172K |
+| 422604.10               | 1-02:57:52 | 1       | 408156K |
+| 422604.11               | 1-03:31:21 | 1       | 417264K |
+| 422604.12               | 1-03:12:16 | 1       | 410908K |
+| 422604.13               | 1-03:24:03 | 1       | 408188K |
+| 422604.14               | 1-02:46:11 | 1       | 407572K |
+| 422604.15               | 1-02:14:56 | 1       | 418208K |
+| 422604.16               | 1-02:49:05 | 1       | 413532K |
+| 422604.17               | 1-02:38:22 | 1       | 417156K |
+| 422604.18               | 1-02:34:01 | 1       | 409720K |
+| 422604.19               | 1-02:31:16 | 1       | 409960K |
+| 422604.20               | 1-01:58:30 | 1       | 408476K |
+| 422604.21               | 1-03:36:40 | 1       | 409268K |
+| 422604.22               | 1-02:06:51 | 1       | 415076K |
+| 422604.23               | 17:32:54   | 1       | 404672K |
+| 422604.24               | 1-01:30:00 | 1       | 419436K |
+| 422604.25               | 1-00:25:33 | 1       | 408812K |
+| 422604.26               | 1-02:18:52 | 1       | 408716K |
+| 422604.27               | 1-02:48:02 | 1       | 428996K |
+| 422604.28               | 1-02:51:51 | 1       | 410064K |
+| 422604.29               | 1-02:14:53 | 1       | 409636K |
+| 422604.30               | 1-01:26:19 | 1       | 416776K |
+| 422604.31               | 1-02:07:55 | 1       | 419956K |
+| 422604.32               | 1-02:21:42 | 1       | 413608K |
+| 422604.33               | 1-03:11:51 | 1       | 410072K |
+| 422604.34               | 1-02:52:18 | 1       | 411888K |
+| 422604.35               | 1-03:01:57 | 1       | 410280K |
+| 422604.36               | 1-03:08:19 | 1       | 409304K |
+| 422604.37               | 1-02:42:23 | 1       | 416172K |
+| 422604.38               | 1-03:11:07 | 1       | 409712K |
+| 422604.39               | 1-02:25:49 | 1       | 417420K |
+| 422604.40               | 1-02:50:20 | 1       | 418772K |
+| 422604.41               | 1-03:06:12 | 1       | 408328K |
+| 422604.42               | 1-03:04:13 | 1       | 408308K |
+| 422604.43               | 1-02:52:40 | 1       | 410024K |
+| 422604.44               | 1-02:51:15 | 1       | 410076K |
+| 422604.45               | 1-02:51:38 | 1       | 409720K |
+| 422604.46               | 1-02:26:23 | 1       | 416532K |
+| 422604.47               | 1-03:42:46 | 1       | 423184K |
+| 422604.48               | 1-02:06:43 | 1       | 409584K |
+| 422604.49               | 1-02:15:43 | 1       | 409812K |
+
+
+The command used to get the above output is as follows:
+	```bash
+	sacct -j 422604 --format=JobID,Elapsed,NCPUS,MaxRSS
+	```
+
+
 
 # Testing the code
 Once you have an operating setup with all the libraries installed, your first run of the code should be to run one of the small simulations that only takes a few minutes. This will identify any issues with the setup prior to performing the full run of the code.
