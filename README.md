@@ -114,65 +114,65 @@ python -c "import rasterio, geopandas, pyTMD; print('All libraries imported succ
 
 As explained above, the model requires significant computing power to execute the 03-tidal_stats.py script using the whole of Australia data. The following script shows how we used HPC to execute the entire pipeline. We provide information on resource utilisation at the end of the section. 
 
-    ```bash
-	#!/bin/bash 					## We use bash in this case
-	#SBATCH --ntasks=50 			## The number of paralel tasks are limited to 50. Please change this number to match your environment. A higher number here will normally mean longer wait in the Slurm queue.
-	#SBATCH --cpus-per-task=1		## The scipt will use 1 CPU per task. 
-	#SBATCH --mem-per-cpu=5G		## Pleease adjust this to match your environment. The higher the number the longer the wait in the Slurm queue.
-	#SBATCH --job-name=AU-NESP		## Name that shows in the Slurm queue
-	#SBATCH --time=0				## Zero means no (wall) time limitation. Wall time is maximum time to run the script for. 
-	#SBATCH --partition=cpuq		## Please change cpuq to your partition name (or delete the whole line to automatically assign partition)
+```bash
+#!/bin/bash 					## We use bash in this case
+#SBATCH --ntasks=50 			## The number of paralel tasks are limited to 50. Please change this number to match your environment. A higher number here will normally mean longer wait in the Slurm queue.
+#SBATCH --cpus-per-task=1		## The scipt will use 1 CPU per task. 
+#SBATCH --mem-per-cpu=5G		## Pleease adjust this to match your environment. The higher the number the longer the wait in the Slurm queue.
+#SBATCH --job-name=AU-NESP		## Name that shows in the Slurm queue
+#SBATCH --time=0				## Zero means no (wall) time limitation. Wall time is maximum time to run the script for. 
+#SBATCH --partition=cpuq		## Please change cpuq to your partition name (or delete the whole line to automatically assign partition)
 
-	module purge ## Purge all loaded modules
-	module load slurm ## load Slurm module. On some HPCs this is automatically loaded after Purge.
-	module load conda/anaconda3 #Loading Anaconda module. Change this top suit your environment. Execute module avail to get the list of available modules in your environment. 
-	## The following 4 lines test whether the directory exists and if not, the script will clone the code from GitHub, otherwise, it will skip to after fi
-	if [ ! -d "AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats" ] ; then 
-			echo "cloning"
-			git clone https://github.com/eatlas/AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
-	fi
-	cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats ## move to a directory where the code is.
-	echo "create environment-3-13"
-	## The following 4 lines will test whether the virtual environment exists and if not, create it. If yes, the script will skip to the line after fi.
-	if conda info --envs | grep -q venv_eot20_3-13; then
-			echo "venv_eot20_3-13 already exists";
-			else conda env create -f environment-3-13.yaml;
-	fi
-	echo "activate venv_eot20_3-13"
-	## Activate virtual environment for us to run the scripts and access the libraries that we need
-	conda activate venv_eot20_3-13
-	## The following 4 lines will test whether the data has already been downloaded and if not, it will doenaload it. Othervise, the script will skipp to after the fi line
-	if [ ! -d "data/in-3p" ] ; then
-			echo "downloading the data"
-			python 01-download-input-data.py
-	fi
-	echo "Setting up the grid"
-	## The following code will setup the grid using data in the config/au.yaml file
-	python 02-tide_model_grid.py --config config/au.yaml
-	echo "Done setting up the grid"
-	## This is the most compute demanding script in the pipeline. The script will start 
-	## SLURM_NTASKS number of processes. the value of SLURM_NTASKS is the value we set for the --ntasks (in our case 50). 
-	## The array iz zero based. The tasks wil run in paralel and use one processor each. 
-	## We did not assign specific memory allocation to each task, that was left to Slurm to decide on. 
-	## Each srun will be run as one task only, ensuring that we can start all SLURM_NTASKS tasks.
-	echo "Running parallel tasks"
-	for (( i = 0; i < $SLURM_NTASKS; i++ )); do
-			srun --ntasks=1 python 03-tidal_stats.py --config config/au.yaml --split $SLURM_NTASKS --index $i &
-	done
-	wait # wait is crucial so the tasks wait for the last task to execute before the execution of the script continues. 
-	echo "Finished running parallel tasks"
+module purge ## Purge all loaded modules
+module load slurm ## load Slurm module. On some HPCs this is automatically loaded after Purge.
+module load conda/anaconda3 #Loading Anaconda module. Change this top suit your environment. Execute module avail to get the list of available modules in your environment. 
+## The following 4 lines test whether the directory exists and if not, the script will clone the code from GitHub, otherwise, it will skip to after fi
+if [ ! -d "AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats" ] ; then 
+		echo "cloning"
+		git clone https://github.com/eatlas/AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats
+fi
+cd AU_NESP-MaC-3-17_AIMS_EOT20-tidal-stats ## move to a directory where the code is.
+echo "create environment-3-13"
+## The following 4 lines will test whether the virtual environment exists and if not, create it. If yes, the script will skip to the line after fi.
+if conda info --envs | grep -q venv_eot20_3-13; then
+		echo "venv_eot20_3-13 already exists";
+		else conda env create -f environment-3-13.yaml;
+fi
+echo "activate venv_eot20_3-13"
+## Activate virtual environment for us to run the scripts and access the libraries that we need
+conda activate venv_eot20_3-13
+## The following 4 lines will test whether the data has already been downloaded and if not, it will doenaload it. Othervise, the script will skipp to after the fi line
+if [ ! -d "data/in-3p" ] ; then
+		echo "downloading the data"
+		python 01-download-input-data.py
+fi
+echo "Setting up the grid"
+## The following code will setup the grid using data in the config/au.yaml file
+python 02-tide_model_grid.py --config config/au.yaml
+echo "Done setting up the grid"
+## This is the most compute demanding script in the pipeline. The script will start 
+## SLURM_NTASKS number of processes. the value of SLURM_NTASKS is the value we set for the --ntasks (in our case 50). 
+## The array iz zero based. The tasks wil run in paralel and use one processor each. 
+## We did not assign specific memory allocation to each task, that was left to Slurm to decide on. 
+## Each srun will be run as one task only, ensuring that we can start all SLURM_NTASKS tasks.
+echo "Running parallel tasks"
+for (( i = 0; i < $SLURM_NTASKS; i++ )); do
+		srun --ntasks=1 python 03-tidal_stats.py --config config/au.yaml --split $SLURM_NTASKS --index $i &
+done
+wait # wait is crucial so the tasks wait for the last task to execute before the execution of the script continues. 
+echo "Finished running parallel tasks"
 
-	echo "Merging the results"
-	## This script will merge the results from all SLURM_NTASKS processes.
-	python 04-merge_strips.py --config config/au.yaml
-	echo "Completed merging the results"
+echo "Merging the results"
+## This script will merge the results from all SLURM_NTASKS processes.
+python 04-merge_strips.py --config config/au.yaml
+echo "Completed merging the results"
 
-	echo "Visualising"
-	## Finally, the last script in the pipeline will generates preview maps for tidal statistics products
-	## Readme for this script indicates that there is a bug in the script that affects the colors of the elements on the map. 
-	python 06-generate-preview-maps.py --config config/au.yaml
-	echo "Completed visualisation process"
-    ```
+echo "Visualising"
+## Finally, the last script in the pipeline will generates preview maps for tidal statistics products
+## Readme for this script indicates that there is a bug in the script that affects the colors of the elements on the map. 
+python 06-generate-preview-maps.py --config config/au.yaml
+echo "Completed visualisation process"
+```
 
 The execution of the pipeline using the code above took the resources as in the following dataset:
 
@@ -233,9 +233,9 @@ The execution of the pipeline using the code above took the resources as in the 
 
 
 The command used to get the above output is as follows:
-	```bash
-	sacct -j 422604 --format=JobID,Elapsed,NCPUS,MaxRSS
-	```
+```bash
+sacct -j 422604 --format=JobID,Elapsed,NCPUS,MaxRSS
+```
 
 
 
